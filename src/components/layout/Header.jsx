@@ -1,15 +1,17 @@
 import React from 'react';
 import { useI18n } from '../../i18n';
-import { Bell, Globe, UserCircle2, ShieldAlert } from 'lucide-react';
+import { Bell, Globe, UserCircle2, ShieldAlert, Menu } from 'lucide-react';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ toggleMenu }) => {
   const { lang, toggleLang, role, toggleRole, t } = useI18n();
 
   return (
     <header className="header glass-panel">
       <div className="header-left">
-        {/* Breadcrumb or Mission Status can go here */}
+        <button className="mobile-menu-btn" onClick={toggleMenu}>
+          <Menu size={24} />
+        </button>
       </div>
 
       <div className="header-right">

@@ -363,3 +363,34 @@
 .mission-focus {
   font-size: 0.85rem;
 }
+
+/* Mobile Learner Dashboard */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 24px;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .competency-dashboard-layout {
+    flex-direction: column;
+  }
+
+  .radar-chart-container {
+    width: 100%;
+    min-height: 300px;
+  }
+
+  .gauge-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
+}

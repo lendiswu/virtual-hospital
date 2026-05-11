@@ -18,11 +18,12 @@ import {
   Video,
   GraduationCap,
   Microscope,
-  BookOpen
+  BookOpen,
+  X
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const { t, role } = useI18n();
 
   const learnerLinks = [
@@ -47,7 +48,7 @@ const Sidebar = () => {
   const links = role === 'learner' ? learnerLinks : facultyLinks;
 
   return (
-    <aside className="sidebar glass-panel">
+    <aside className={`sidebar glass-panel ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="logo-container">
           <div className="logo-icon flex-center">
@@ -55,6 +56,9 @@ const Sidebar = () => {
           </div>
           <h2 className="logo-text text-accent-gradient">Virtual Hospital</h2>
         </div>
+        <button className="mobile-close-btn" onClick={() => setIsOpen(false)}>
+          <X size={24} />
+        </button>
       </div>
       
       <nav className="sidebar-nav">
@@ -64,6 +68,7 @@ const Sidebar = () => {
             to={link.to} 
             end={link.end}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            onClick={() => setIsOpen(false)}
           >
             <span className="nav-icon">{link.icon}</span>
             <span className="nav-label">{t(link.label)}</span>

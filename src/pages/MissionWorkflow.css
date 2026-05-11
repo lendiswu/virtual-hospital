@@ -341,3 +341,26 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
+
+/* Mobile Mission Workflow */
+@media (max-width: 768px) {
+  .workflow-grid {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .workflow-container {
+    height: auto;
+    min-height: calc(100vh - var(--header-height) - 64px);
+  }
+  
+  .progression-map {
+    max-height: 200px;
+    border-bottom: 1px solid var(--border-glass);
+  }
+  
+  .active-activity {
+    min-height: 500px;
+  }
+}

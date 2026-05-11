@@ -117,3 +117,14 @@
   padding: 6px 12px;
   font-size: 0.8rem;
 }
+
+/* Mobile Faculty Dashboard */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

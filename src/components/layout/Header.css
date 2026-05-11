@@ -13,6 +13,15 @@
   z-index: 90;
 }
 
+}
+
+.mobile-menu-btn {
+  display: none;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -98,4 +107,39 @@
 .user-role {
   font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+/* Mobile Header */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    margin-right: 16px;
+  }
+  
+  .lang-toggle span {
+    display: none; /* Hide text, keep icon */
+  }
+  
+  .user-info {
+    display: none; /* Hide user text, keep avatar */
+  }
+  
+  .header-right {
+    gap: 12px;
+  }
+  
+  .role-switch button {
+    padding: 8px;
+  }
+  
+  .role-switch button span, .role-switch button text {
+    display: none;
+  }
 }
