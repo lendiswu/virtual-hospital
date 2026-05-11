@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { I18nProvider, useI18n } from './i18n';
 import Layout from './components/layout/Layout';
 import LearnerDashboard from './pages/LearnerDashboard';
@@ -14,7 +14,7 @@ const AppContent = () => {
   const { role } = useI18n();
   
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           {role === 'learner' ? (
@@ -35,7 +35,7 @@ const AppContent = () => {
           )}
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
