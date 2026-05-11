@@ -1,0 +1,365 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero Section */
+.hero-section {
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  margin: 16px 0 8px 0;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+
+/* Timeline */
+.timeline-container {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 140px;
+  text-align: center;
+}
+
+.step-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-glass);
+  margin-bottom: 16px;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.timeline-step.completed .step-icon {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: var(--accent-teal);
+  color: var(--accent-teal);
+  box-shadow: 0 0 15px var(--accent-teal-glow);
+}
+
+.timeline-step.active .step-icon {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 20px var(--accent-cyan-glow);
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.timeline-step.locked .step-icon {
+  color: var(--text-muted);
+}
+
+.step-connector {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border-glass);
+  z-index: 1;
+}
+
+.timeline-step.completed .step-connector {
+  background: var(--accent-teal);
+}
+
+.step-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.timeline-step.active .step-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.step-score {
+  font-size: 0.75rem;
+  color: var(--accent-teal);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.step-feedback {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Competency Section */
+.section-title {
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+}
+
+.competency-dashboard-layout {
+  display: flex;
+  gap: 24px;
+}
+
+.radar-chart-container {
+  width: 350px;
+  height: auto;
+  min-height: 400px;
+  padding: 20px;
+}
+
+.gauge-cards-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.gauge-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.4); /* darker, more transparent */
+  border-width: 1px;
+  border-style: solid;
+}
+
+.gauge-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.gauge-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gauge-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.gauge-svg {
+  width: 100%;
+  max-width: 180px;
+}
+
+.gauge-value {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.gauge-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 16px;
+  height: 32px; /* Fixed height for 2 lines */
+  line-height: 1.3;
+}
+
+.gauge-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+}
+
+.metric-label {
+  flex: 1;
+  color: var(--text-secondary);
+}
+
+.metric-val {
+  font-weight: 600;
+  width: 20px;
+  text-align: right;
+}
+
+.metric-bar-bg {
+  width: 50px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.gauge-legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 2px;
+  border-top: 2px solid transparent;
+}
+
+/* Learning Activities */
+.mission-card {
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.mission-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.mission-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-play-overlay {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(6, 182, 212, 0.8);
+  backdrop-filter: blur(4px);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover .mission-image img {
+  transform: scale(1.05);
+}
+
+.mission-card:hover .mission-overlay {
+  opacity: 1;
+}
+
+.mission-card:hover .btn-play-overlay {
+  transform: scale(1);
+}
+
+.mission-info {
+  padding: 20px;
+}
+
+.mission-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.badge.difficulty {
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.mission-title {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.mission-focus {
+  font-size: 0.85rem;
+}
