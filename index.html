@@ -66,13 +66,11 @@
   .demo button b{display:block; font-size:13px; margin-bottom:2px;}
   .demo button.l b{color:var(--teal);} .demo button.t b{color:var(--gold);}
   .demo button.m b{color:var(--green);} .demo button.a b{color:var(--purple);}
-  @media(max-width:860px){
-    .login-wrap{flex-direction:column;}
-    .login-visual{flex:none; padding:34px 20px 70px;}
-    .login-visual .crest{width:min(300px,70%);}
-    .login-visual .vh-line{margin-top:18px; font-size:19px;}
-    .login-visual .sky{width:55%;}
-  }
+    body.mobile .login-wrap{flex-direction:column;}
+  body.mobile .login-visual{flex:none; padding:34px 20px 70px;}
+  body.mobile .login-visual .crest{width:min(300px,70%);}
+  body.mobile .login-visual .vh-line{margin-top:18px; font-size:19px;}
+  body.mobile .login-visual .sky{width:55%;}
 
   /* ===== Shell ===== */
   .shell{display:flex; min-height:100vh;}
@@ -292,28 +290,35 @@
   .xp-in{width:90px; background:var(--card2); border:1px solid var(--line); border-radius:6px; color:var(--txt); padding:5px 9px; font-size:13px; font-family:inherit;}
 
   /* ===== 行動版(≤760px):側欄轉為頂部橫向捲動列 ===== */
-  @media(max-width:760px){
-    .shell{flex-direction:column;}
-    .side{width:100%; flex-direction:row; align-items:center; padding:8px 10px; position:sticky; top:0; z-index:50; border-right:none; border-bottom:1px solid var(--line);}
-    .side .logo{display:none;}
-    .side .me{display:none;}
-    .nav{margin-top:0; display:flex; overflow-x:auto; flex:1; gap:2px; -webkit-overflow-scrolling:touch;}
-    .nav a{white-space:nowrap; padding:8px 10px; margin-bottom:0; font-size:12.5px;}
-    .main{padding:18px 14px 70px;}
-    .landing{padding:30px 16px 70px;}
-    .hero{margin-top:50px;}
-    .hero h1{font-size:29px; letter-spacing:2px;}
-    .pg-t{font-size:19px;}
-    .chatbox{height:380px;}
-    .cardx{overflow-x:auto;}
-    .tbl{min-width:540px;}
-    .stat-row{grid-template-columns:repeat(2,1fr);}
-    .run-grid{grid-template-columns:1fr;}
-  }
+    body.mobile .shell{flex-direction:column;}
+  body.mobile .side{width:100%; flex-direction:row; align-items:center; padding:8px 10px; position:sticky; top:0; z-index:50; border-right:none; border-bottom:1px solid var(--line);}
+  body.mobile .side .logo{display:none;}
+  body.mobile .side .me{display:none;}
+  body.mobile .nav{margin-top:0; display:flex; overflow-x:auto; flex:1; gap:2px; -webkit-overflow-scrolling:touch;}
+  body.mobile .nav a{white-space:nowrap; padding:8px 10px; margin-bottom:0; font-size:12.5px;}
+  body.mobile .main{padding:18px 14px 70px;}
+  body.mobile .landing{padding:30px 16px 70px;}
+  body.mobile .hero{margin-top:50px;}
+  body.mobile .hero h1{font-size:29px; letter-spacing:2px;}
+  body.mobile .pg-t{font-size:19px;}
+  body.mobile .chatbox{height:380px;}
+  body.mobile .cardx{overflow-x:auto;}
+  body.mobile .tbl{min-width:540px;}
+  body.mobile .stat-row{grid-template-columns:repeat(2,1fr);}
+  body.mobile .run-grid{grid-template-columns:1fr;}
+
+  /* 強制手機版時的單欄補充 */
+  body.mobile .grid2, body.mobile .grid3, body.mobile .feat{grid-template-columns:1fr;}
+  body.mobile .acts{grid-template-columns:1fr;}
+  body.mobile .ai-grid{grid-template-columns:1fr;}
+  /* 版本切換鈕 */
+  .vm-btn{position:fixed; top:10px; right:12px; z-index:400; background:var(--card2); border:1px solid var(--line); color:var(--sub); border-radius:16px; padding:6px 14px; font-size:12px; cursor:pointer; letter-spacing:1px; opacity:.92;}
+  .vm-btn:hover{color:var(--txt); border-color:var(--faint);}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<button id="vm-btn" class="vm-btn" onclick="togView()">📱 手機版</button>
 <div class="proto">虛擬醫院平台 Beta 0.1 — 示範資料與前端模擬,操作結果保存於本次瀏覽;功能完成度以網站地圖 Beta 0.1 功能驗收版為準。</div>
 
 <script>
@@ -612,6 +617,7 @@ const ROLE_ME = {
 
 /* ===================== 全域狀態 ===================== */
 let S = {
+  viewMode:"auto",
   role:null, filter:"全部",
   runState:{}, chat:{}, chatIdx:{}, hint:false, toolTab:"chart",
   editor:{caseId:null, stage:1, tools:{}, assess:{}, status:"草稿", draft:false},
@@ -2283,6 +2289,28 @@ function render(){
   window.scrollTo(0,0);
 }
 render();
+
+/* ===== 網頁版/手機版 手動切換 ===== */
+function applyView(){
+  const mobile = S.viewMode==='mobile' || (S.viewMode==='auto' && window.innerWidth<=760);
+  document.body.classList.toggle('mobile', mobile);
+  const b=document.getElementById('vm-btn');
+  if(b) b.textContent = mobile ? '💻 網頁版' : '📱 手機版';
+  const vp=document.querySelector('meta[name="viewport"]');
+  if(vp){
+    if(S.viewMode==='desktop' && screen.width<800){
+      vp.setAttribute('content','width=1280, initial-scale=0.32, user-scalable=yes');
+    } else {
+      vp.setAttribute('content','width=device-width, initial-scale=1.0');
+    }
+  }
+}
+function togView(){
+  S.viewMode = document.body.classList.contains('mobile') ? 'desktop' : 'mobile';
+  applyView();
+}
+window.addEventListener('resize', ()=>{ if(S.viewMode==='auto') applyView(); });
+applyView();
 </script>
 </body>
 </html>
