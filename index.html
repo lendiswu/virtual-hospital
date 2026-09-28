@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>虛擬醫院 Virtual Hospital — 原型 v3</title>
+<title>虛擬醫院 Virtual Hospital — Beta 0.1</title>
 <style>
   :root{
     --bg:#0E1726; --panel:#121D31; --card:#16233C; --card2:#1C2B49; --line:#28395C;
@@ -77,7 +77,8 @@
   /* ===== Shell ===== */
   .shell{display:flex; min-height:100vh;}
   .side{width:224px; background:var(--panel); border-right:1px solid var(--line); padding:22px 14px; flex-shrink:0; display:flex; flex-direction:column;}
-  .side .logo{font-size:15px; letter-spacing:2px; padding:0 8px 18px; border-bottom:1px solid var(--line);}
+  .side .logo{font-size:15px; letter-spacing:2px; padding:0 8px 18px; border-bottom:1px solid var(--line); cursor:pointer;}
+  .side .logo:hover{color:var(--teal);}
   .nav{margin-top:14px; flex:1;}
   .nav a{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; color:var(--sub); font-size:13.5px; letter-spacing:1px; margin-bottom:3px;}
   .nav a .ic{width:20px; text-align:center;}
@@ -268,6 +269,28 @@
 
   .ph{border:1px dashed var(--line); border-radius:12px; padding:20px 24px; margin-top:18px; color:var(--sub); font-size:13px; line-height:1.9;}
 
+  /* ===== v4:彈窗、表單、監控列 ===== */
+  .modal-bg{position:fixed; inset:0; background:rgba(8,13,24,.74); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:14px; width:530px; max-width:100%; max-height:88vh; overflow-y:auto; padding:24px 26px;}
+  .modal h3{font-size:16px; letter-spacing:1.5px; margin-bottom:4px; color:var(--txt);}
+  .modal .m-s{font-size:12px; color:var(--faint); margin-bottom:12px;}
+  .f-row{margin-top:12px;}
+  .f-row label{display:block; font-size:12px; color:var(--sub); letter-spacing:1px; margin-bottom:5px;}
+  .f-row input,.f-row select,.f-row textarea{width:100%; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 11px; color:var(--txt); font-size:13.5px; font-family:inherit;}
+  .f-row textarea{height:70px; resize:vertical;}
+  .ck{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--sub); margin-right:16px; cursor:pointer;}
+  .ck input{width:auto;}
+  .m-foot{display:flex; gap:10px; margin-top:20px; justify-content:flex-end;}
+  .rowlink{cursor:pointer;}
+  .rowlink:hover td{background:rgba(255,255,255,.035);}
+  .flash{position:fixed; top:14px; right:14px; z-index:300; background:var(--card2); border:1px solid var(--teal); color:var(--teal); border-radius:9px; padding:10px 16px; font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,.4);}
+  .grp-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px dashed var(--line); font-size:13px; color:var(--sub);}
+  .grp-row:last-child{border-bottom:none;}
+  .grp-row b{color:var(--txt); width:66px; flex-shrink:0;}
+  .grp-row .steps{flex:1; margin-top:0;}
+  .grp-row .st-l{width:170px; text-align:right; font-size:11.5px; flex-shrink:0;}
+  .xp-in{width:90px; background:var(--card2); border:1px solid var(--line); border-radius:6px; color:var(--txt); padding:5px 9px; font-size:13px; font-family:inherit;}
+
   /* ===== 行動版(≤760px):側欄轉為頂部橫向捲動列 ===== */
   @media(max-width:760px){
     .shell{flex-direction:column;}
@@ -291,7 +314,7 @@
 </head>
 <body>
 <div id="app"></div>
-<div class="proto">原型 v3(全介面+臨床審查+課堂模式+行動版)— 所有資料皆為示意假資料,互動皆為前端模擬;正式版將接入實際後端。</div>
+<div class="proto">虛擬醫院平台 Beta 0.1 — 示範資料與前端模擬,操作結果保存於本次瀏覽;功能完成度以網站地圖 Beta 0.1 功能驗收版為準。</div>
 
 <script>
 /* =====================================================================
@@ -301,7 +324,7 @@
    participants 陣列 → 多人協作
 ===================================================================== */
 const DB = {
-  user: { id:"u001", name:"林同學", dept:"醫學系", grade:"四年級", role:"learner",
+  user: { id:"u001", name:"林同學", dept:"醫學系", grade:"四年級", role:"learner", isDemo:true, acct:"301042",
           level:4, xp:1240, xpNext:1500,
           competencies: [
             {key:"PC",  name:"病人照護", val:62},
@@ -379,13 +402,25 @@ const DB = {
   ],
 
   accounts: [
-    {name:"林同學", roles:["學員"], unit:"醫學系四年級", status:"啟用"},
-    {name:"張同學", roles:["學員"], unit:"護理系三年級", status:"啟用"},
-    {name:"周同學", roles:["學員"], unit:"醫學系四年級", status:"啟用"},
-    {name:"陳老師", roles:["教師"], unit:"內科", status:"啟用"},
-    {name:"王導師", roles:["教師","導師"], unit:"急診醫學科", status:"啟用"},
-    {name:"李同學", roles:["學員"], unit:"藥學系二年級", status:"停用"}
+    {name:"林同學", roles:["學員"], unit:"醫學系四年級", status:"啟用", acct:"301042", pwd:"******"},
+    {name:"張同學", roles:["學員"], unit:"護理學系三年級", status:"啟用", acct:"404117", pwd:"******"},
+    {name:"周同學", roles:["學員"], unit:"醫學系四年級", status:"啟用", acct:"301095", pwd:"******"},
+    {name:"陳老師", roles:["教師"], unit:"內科", status:"啟用", acct:"—", pwd:"—"},
+    {name:"王導師", roles:["教師","導師"], unit:"急診醫學科", status:"啟用", acct:"—", pwd:"—"},
+    {name:"李同學", roles:["學員"], unit:"藥學系二年級", status:"停用", acct:"503208", pwd:"******"}
   ],
+  /* 學系代碼表(示意;正式版由管理者維護) */
+  deptCodes: {"01":"醫學系","02":"牙醫學系","03":"藥學系","04":"護理學系","05":"醫學檢驗暨生物技術學系","06":"呼吸治療學系"},
+  /* 學員資料庫(名單+成績;帳號連動的資料來源) */
+  students: [
+    {acct:"301042", name:"林同學", sid:"B11201042", deptName:"醫學系", year:"2023", grades:[], comps:null, xp:0},
+    {acct:"404117", name:"張同學", sid:"N11304117", deptName:"護理學系", year:"2024", grades:[], comps:null, xp:0},
+    {acct:"301095", name:"周同學", sid:"B11201095", deptName:"醫學系", year:"2023", grades:[], comps:null, xp:0}
+  ],
+  /* 站內訊息:以帳號配對為 key 的共用訊息串(跨帳號可讀) */
+  threads: {
+    "301042|404117":[{from:"404117", text:"嗨!你最近打到 Lv.4 了喔,好快!", t:"09/26 09:12"}]
+  },
   pairs: [
     {mentor:"王導師", mentees:["林同學","張同學","周同學"]},
     {mentor:"趙導師", mentees:["吳同學","鄭同學"]}
@@ -412,10 +447,25 @@ const DB = {
   ],
 
   teacherActs: [
-    {title:"上腹痛 CBL", mode:"課堂教學", who:"醫四 A 班 · 45 人", done:62, stuck:"鑑別診斷", status:"進行中"},
-    {title:"發燒的評估與處置", mode:"自我學習", who:"醫四全年級 · 128 人", done:84, stuck:"檢查判讀", status:"開放中"},
-    {title:"AI 虛擬病人問診練習", mode:"自我學習", who:"護理三 · 38 人", done:91, stuck:"—", status:"開放中"}
+    {title:"上腹痛 CBL", mode:"課堂教學", who:"醫四 A 班 · 45 人", sched:"09/26(五)10:10", done:62, stuck:"鑑別診斷", status:"進行中"},
+    {title:"發燒的評估與處置", mode:"自我學習", who:"醫四全年級 · 128 人", sched:"常駐開放", done:84, stuck:"檢查判讀", status:"開放中"},
+    {title:"AI 虛擬病人問診練習", mode:"自我學習", who:"護理三 · 38 人", sched:"常駐開放", done:91, stuck:"—", status:"開放中"}
   ],
+  groups: [
+    {g:"第 1 組", n:5, stage:4, note:"進度最快"},
+    {g:"第 2 組", n:5, stage:3, note:""},
+    {g:"第 3 組", n:4, stage:2, note:"卡在鑑別診斷 18 分鐘", stuck:true},
+    {g:"第 4 組", n:5, stage:3, note:""},
+    {g:"第 5 組", n:5, stage:1, note:"起步較慢", stuck:true},
+    {g:"第 6 組", n:4, stage:4, note:""}
+  ],
+  learnerProfiles: {
+    "林同學":{comps:[62,71,55,48,66,40], trend:[0,150,300,420,600,800,1040,1240]},
+    "張同學":{comps:[55,60,42,58,61,38], trend:[0,80,200,320,480,600,700,840]},
+    "周同學":{comps:[82,88,75,70,85,66], trend:[0,300,650,900,1250,1600,1880,2100]},
+    "王同學":{comps:[78,80,72,66,79,60], trend:[0,250,520,800,1000,1200,1380,1520]},
+    "李同學":{comps:[40,45,38,52,58,30], trend:[0,60,120,220,300,380,450,520]}
+  },
   outliers: {
     good:[{n:"周同學",d:"平均 91 分,連續完成 8 個活動"},{n:"王同學",d:"平均 88 分,鑑別診斷表現突出"}],
     watch:[{n:"張同學",d:"14 天未登入,進度落後全班 30%"},{n:"李同學",d:"平均 52 分,檢驗判讀連續 3 次卡關"}]
@@ -490,11 +540,23 @@ const DB = {
   xpRules: [
     {lv:1, need:0},{lv:2, need:300},{lv:3, need:700},{lv:4, need:1100},{lv:5, need:1600},{lv:6, need:2200}
   ],
+  /* v7:可調整的規則定義(成績換算/課程對應;正式版由教學委員會核定後於此維護) */
+  rules: {
+    compBase:30, anchor:60, xpK:20,
+    kw: [
+      "技能,OSCE,實習,臨床,診斷學",
+      "內科,外科,醫學,解剖,生理,藥理",
+      "研究,EBM,實證,統計",
+      "溝通,醫病,訪談,衛教",
+      "倫理,專業,法律",
+      "公衛,制度,品質,衛政,醫管"
+    ]
+  },
 
   demoAccounts: [
     {role:"learner", cls:"l", name:"學員", who:"林同學(醫學系四年級)"},
     {role:"teacher", cls:"t", name:"教師", who:"陳老師(內科)"},
-    {role:"mentor",  cls:"m", name:"導師", who:"王導師(急診)"},
+    {role:"mentor",  cls:"m", name:"導師", who:"王導師(教師+導師,可切換)"},
     {role:"admin",   cls:"a", name:"管理者", who:"平台管理員"}
   ]
 };
@@ -534,9 +596,11 @@ const NAVS = {
   ],
   admin: [
     {h:"/admin/accounts",  ic:"🔐", t:"帳號與權限管理"},
+    {h:"/admin/students",  ic:"📇", t:"學員資料庫"},
     {h:"/admin/patients",  ic:"🗄", t:"虛擬病人資料管理"},
     {h:"/admin/avatar",    ic:"🧑‍⚕️", t:"Avatar 建構管理"},
-    {h:"/admin/system",    ic:"⚙️", t:"系統設定與稽核"}
+    {h:"/admin/rules",     ic:"🎛", t:"XP 與能力規則"},
+    {h:"/admin/system",    ic:"⚙️", t:"系統與稽核"}
   ]
 };
 const ROLE_ME = {
@@ -554,13 +618,58 @@ let S = {
   boardTab:"week", anon:false, goals:{"加強檢驗判讀":true},
   mm:"林同學", recPushed:{a3:true}, classCtl:"未開始",
   scoring:null, rub:{}, peer:"張同學", invited:false, checked:null,
-  reviewDone:{}
+  reviewDone:{}, modal:null, flash:null, caseQuery:"", tact:0,
+  viewLearner:"林同學", caseView:null,
+  boardCfg:{effort:true, anon:true, quit:true, pure:false},
+  accMode:"single", lastBatch:[], accY:"2026", accD:"01",
+  loginAs:null, stuView:null, peerAcct:null,
+  runx:{pe:{}, ddx:{}, lab:{}, tx:{}}
 };
 const app = document.querySelector("#app");
 window.addEventListener("hashchange", render);
 function go(h){ location.hash = h; }
-function login(role){ S.role = role; go(roleHome(role)); }
-function logout(){ S.role = null; go("/"); }
+function login(role){
+  S.role = role; S.loginAs = null;
+  /* 多重角色示範:王導師=教師+導師,登入後側欄可切換身分 */
+  S.multi = (role==='mentor');
+  go(roleHome(role));
+}
+function switchRole(r){ S.role=r; go(roleHome(r)); }
+function logout(){ S.role = null; S.loginAs = null; go("/"); }
+/* v6:目前登入的學員(示範帳號=完整 demo 資料;匯入學員=資料庫連動) */
+function cur(){ return S.loginAs || DB.user; }
+function levelOf(xp){
+  let lv=1;
+  DB.xpRules.forEach(r=>{ if(xp>=r.need) lv=r.lv; });
+  const nx=DB.xpRules.find(r=>r.lv===lv+1);
+  return {lv:lv, next: nx?nx.need:(xp+500)};
+}
+function profTerm(u){
+  const d=u.dept||"";
+  if(d.includes("護理")) return "『護理力』";
+  if(d.includes("藥")) return "『藥師力』";
+  return "『醫師力』";
+}
+function recForCur(u){
+  const vals=u.competencies.map(c=>c.val);
+  const worst=vals.indexOf(Math.min(...vals));
+  const mapAx=["a6","a1","a3","a6","a4","a4"];
+  return [{activityId:mapAx[worst], source:"system", by:"系統推薦",
+    reason:(u.hasGrades?("依你匯入成績推估的能力短板("+u.competencies[worst].name+")"):"新學員起步推薦")+",從這個活動開始"}];
+}
+function loginSubmit(){
+  const el=document.getElementById('lg-acct');
+  const v=el?el.value.trim():"";
+  if(!v){ login('learner'); return; }
+  const st=DB.students.find(s=>s.acct===v||s.sid===v);
+  if(!st){ alert("查無此帳號(原型示範:可先於管理者端「學員資料庫」匯入名單,或直接使用下方示範身分)"); return; }
+  if(st.acct==="301042"){ login('learner'); return; }
+  const lvl=levelOf(st.xp||0);
+  S.loginAs={ name:st.name, dept:st.deptName, grade:"", acct:st.acct, level:lvl.lv, xp:st.xp||0, xpNext:lvl.next,
+    competencies: DB.user.competencies.map((c,i)=>({key:c.key, name:c.name, val:(st.comps||[30,30,30,30,30,30])[i]})),
+    isDemo:false, hasGrades:!!(st.grades&&st.grades.length) };
+  S.role='learner'; go('/learner/dash');
+}
 function roleHome(r){ return {learner:"/learner/dash", teacher:"/teacher/dash", mentor:"/mentor/overview", admin:"/admin/accounts"}[r]; }
 
 /* ===================== 共用元件 ===================== */
@@ -602,13 +711,28 @@ function barRow(lb,pc,color){
   return `<div class="bar-row"><span class="lb">${lb}</span><span class="tr"><i style="width:${pc}%;background:${color}"></i></span><span class="pc">${pc}%</span></div>`;
 }
 function shellFor(role, active, content){
-  const nav = NAVS[role].map(n=>
-    `<a href="#${n.h}" class="${active===n.h?'on':''}"><span class="ic">${n.ic}</span>${n.t}</a>`).join("");
+  const nav = NAVS[role].map(n=>{
+    const dot=(role==='learner'&&n.h==='/learner/social'&&socialUnread()>0)?' <span style="color:var(--red);font-size:9px;">●</span>':'';
+    return `<a href="#${n.h}" class="${active===n.h?'on':''}"><span class="ic">${n.ic}</span>${n.t}${dot}</a>`;
+  }).join("");
+  let me;
+  if(role==='learner'){
+    me = `<b>${cur().name}</b> · ${cur().dept}${cur().grade||""}<br>Lv.${cur().level}　XP ${cur().xp}`;
+  } else if(S.multi && (role==='teacher'||role==='mentor')){
+    me = `<b style="color:${role==='teacher'?'var(--gold)':'var(--green)'}">王導師</b> · 急診醫學科<br>
+      目前身分:${role==='teacher'?'教師':'導師'}
+      <div style="margin-top:7px;">
+        <span class="tagx ${role==='teacher'?'gold':'gray'}" style="cursor:pointer" onclick="switchRole('teacher')">${role==='teacher'?'● ':''}教師</span>
+        <span class="tagx ${role==='mentor'?'green':'gray'}" style="cursor:pointer" onclick="switchRole('mentor')">${role==='mentor'?'● ':''}導師</span>
+      </div>`;
+  } else {
+    me = ROLE_ME[role];
+  }
   return `<div class="shell">
     <div class="side">
-      <div class="logo">虛擬<b>醫院</b></div>
+      <div class="logo" onclick="go(roleHome(S.role))" title="回到首頁">虛擬<b>醫院</b></div>
       <div class="nav">${nav}</div>
-      <div class="me">${ROLE_ME[role]}<span class="out" onclick="logout()">← 登出</span></div>
+      <div class="me">${me}<span class="out" onclick="logout()">← 登出</span></div>
     </div>
     <div class="main">${content}</div>
   </div>`;
@@ -658,9 +782,9 @@ function pageLogin(){
     </div>
     <div class="login-form"><div class="login-box">
       <h2>登入虛擬醫院</h2><div class="s">VIRTUAL HOSPITAL LOGIN</div>
-      <div class="fld"><label>帳號(未來介接校園 SSO)</label><input placeholder="學號 / 教職員編號"></div>
-      <div class="fld"><label>密碼</label><input type="password" placeholder="••••••••"></div>
-      <button class="btn" onclick="login('learner')">登入</button>
+      <div class="fld"><label>帳號(六碼:入學年末碼+學系代碼+學號末三碼)</label><input id="lg-acct" placeholder="例:601042" onkeydown="if(event.key==='Enter')loginSubmit()"></div>
+      <div class="fld"><label>密碼(原型:免輸入;正式版初始密碼=帳號)</label><input type="password" placeholder="••••••••"></div>
+      <button class="btn" onclick="loginSubmit()">登入</button>
       <div class="demo">
         <p>原型示範:選擇身分直接進入(角色分流示意)</p>
         <div class="d-row">
@@ -673,19 +797,19 @@ function pageLogin(){
 
 /* ===================== 學員:儀表板/目錄/詳情 ===================== */
 function pageDash(){
-  const u=DB.user;
-  const prog=DB.records.find(r=>r.status==="in-progress");
+  const u=cur();
+  const prog=u.isDemo!==false?DB.records.find(r=>r.status==="in-progress"):null;
   const act=prog?DB.activities.find(a=>a.id===prog.activityId):null;
   const curStage=S.runState[prog?prog.activityId:""]!==undefined?S.runState[prog.activityId]:(prog?prog.stageIdx:0);
   const stepsHtml=act?act.stages.map((s,i)=>{
     const cls=i<curStage?"done":(i===curStage?"now":"");
     return `<i class="${cls}" title="${s}"></i>`;}).join(""):"";
-  const recs=[...DB.recommendations].sort((a,b)=>(a.source==="mentor"?-1:1)-(b.source==="mentor"?-1:1));
+  const recs=u.isDemo?[...DB.recommendations].sort((a,b)=>(a.source==="mentor"?-1:1)-(b.source==="mentor"?-1:1)):recForCur(u);
   const upcoming=DB.activities.filter(a=>a.lvReq>u.level).sort((a,b)=>a.lvReq-b.lvReq).slice(0,3);
   return shellFor("learner","/learner/dash", `
     <div class="crumb">學員介面 LEARNER</div>
     <div class="pg-t">早安,${u.name}</div>
-    <div class="pg-s">今天也累積一些『醫師力』吧。</div>
+    <div class="pg-s">今天也累積一些${profTerm(u)}吧。${u.isDemo?"":(u.hasGrades?" 你的初始能力已由課程成績推估,完成活動後會持續更新。":" 歡迎加入!完成第一個活動開始累積能力。")}</div>
     <div class="grid2 mt2">
       <div class="cardx">
         <h3>等級與經驗值</h3>
@@ -694,7 +818,7 @@ function pageDash(){
           <div class="xp">
             <div class="t"><span>XP ${u.xp} / ${u.xpNext}</span><span>距離 Lv.${u.level+1} 還差 ${u.xpNext-u.xp} XP</span></div>
             <div class="bar"><i style="width:${Math.round(u.xp/u.xpNext*100)}%"></i></div>
-            <div class="t" style="margin-top:10px;"><span>本週獲得 200 XP</span><span>連續學習 5 天 🔥</span></div>
+            ${u.isDemo?'<div class="t" style="margin-top:10px;"><span>本週獲得 200 XP</span><span>連續學習 5 天 🔥</span></div>':''}
           </div>
         </div>
         ${upcoming.length?`<div class="nu">
@@ -739,7 +863,7 @@ function pageDash(){
     </div>
     <div class="cardx mt">
       <h3>通知摘要 <span style="font-weight:400;color:var(--faint);font-size:11px;">(完整列表見「通知與設定」)</span></h3>
-      <ul class="noti">${DB.notifications.slice(0,3).map(n=>`<li><time>${n.t}</time>${n.text}</li>`).join("")}</ul>
+      <ul class="noti">${(u.isDemo?DB.notifications.slice(0,3):[{t:"—",text:"歡迎加入虛擬醫院!你的帳號已連動學員資料庫,完成第一個活動即可開始累積 XP 與能力。"}]).map(n=>`<li><time>${n.t}</time>${n.text}</li>`).join("")}</ul>
     </div>
   `);
 }
@@ -749,11 +873,11 @@ function pageCatalog(){
   return shellFor("learner","/learner/catalog", `
     <div class="crumb">學員介面 LEARNER</div>
     <div class="pg-t">虛擬臨床活動目錄</div>
-    <div class="pg-s">依你的等級(Lv.${DB.user.level})解鎖;完成活動獲得 XP 與能力成長。</div>
+    <div class="pg-s">依你的等級(Lv.${cur().level})解鎖;完成活動獲得 XP 與能力成長。</div>
     <div class="filters">${cats.map(c=>`<button class="${S.filter===c?'on':''}" onclick="S.filter='${c}';render()">${c}</button>`).join("")}</div>
     <div class="acts">
       ${acts.map(a=>{
-        const locked=a.lvReq>DB.user.level;
+        const locked=a.lvReq>cur().level;
         return `<div class="act ${locked?'lock':''}" ${locked?"":`onclick="go('/learner/act/${a.id}')"`}>
           <div class="top">${modeTag(a.mode)}<span class="tagx gray">${a.dept}</span></div>
           <h4>${a.title}</h4>
@@ -832,6 +956,7 @@ function advStage(aid){
 }
 function togHint(){ S.hint=!S.hint; render(); }
 function setTool(t){ S.toolTab=t; render(); }
+function togRunx(g,i){ S.runx[g][i]=!S.runx[g][i]; render(); }
 function pageRun(id){
   const a=DB.activities.find(x=>x.id===id);
   if(!a) return shellFor("learner","/learner/catalog","<p>找不到活動</p>");
@@ -844,12 +969,47 @@ function pageRun(id){
     return `<span class="stg ${cls}">${s}</span>${i<a.stages.length-1?'<span class="stg-ar">→</span>':''}`;
   }).join("");
   const isA4=(id==="a4");
+  /* Beta 1.0:左側主面板依「當前階段」切換,與步驟軸一致 */
+  const R=S.runx;
+  if(S.toolTab==='pt'&&cur===0) S.toolTab='chart';
+  const peItems=[["腹部視診","外觀平坦,無膨出、無手術疤痕"],["腹部觸診","上腹壓痛(+),無反彈痛、無肌抵抗"],["腸音聽診","腸蠕動音正常"],["肛門指診","指套黑便(+),無鮮血"],["生命徵象","BP 96/58 · HR 108 · SpO2 98%——注意偏低血壓+心搏過速"]];
+  const ddxItems=["消化性潰瘍出血","胃食道靜脈瘤出血","胃癌出血","急性胰臟炎","膽道疾病","主動脈腸道瘻管"];
+  const labItems=[["Hb 8.9 g/dL ↓","貧血——出血量評估關鍵"],["BUN 42 ↑ / Cr 1.0","BUN/Cr 比值升高——上消化道出血線索"],["PLT 215K","正常"],["肝功能正常","降低靜脈瘤出血可能"],["CXR 無 free air","暫不支持穿孔"]];
+  const txItems=["禁食(NPO)","大口徑 IV ×2+輸液復甦","PPI 靜脈滴注","備血/輸血評估","照會腸胃科(內視鏡)","Hb 系列追蹤"];
+  function chipList(items,group,fmt){
+    return items.map((it,i)=>{
+      const on=R[group][i];
+      if(fmt==='reveal') return `<div class="case-item" style="cursor:pointer" onclick="togRunx('${group}',${i})"><b>${it[0]}</b>${on?`<span style="color:var(--sub)">${it[1]}</span>`:`<span style="color:var(--faint)">點擊執行檢查</span>`}</div>`;
+      if(fmt==='mark') return `<div class="case-item" style="cursor:pointer" onclick="togRunx('${group}',${i})"><b>${it[0]}</b><span style="color:var(--faint)">${it[1]}</span>${on?`<span class="tagx teal" style="margin-left:auto">✓ 已標記關鍵</span>`:``}</div>`;
+      return `<span class="toolchip ${on?'on':''}" onclick="togRunx('${group}',${i})">${on?'✓ ':''}${it}</span>`;
+    }).join("");
+  }
+  let mainPanel="";
+  if(isA4){
+    if(cur===0) mainPanel=`<h3>🧑 問診 · 虛擬病人 陳先生(58 歲)</h3>`+chatHtml(key,"陳先生","輸入你想問病人的問題…","sendChat('a4')");
+    else if(cur===1) mainPanel=`<h3>🩺 身體診察(點擊項目執行檢查)</h3><div class="mt">${chipList(peItems,'pe','reveal')}</div>`;
+    else if(cur===2) mainPanel=`<h3>🧠 鑑別診斷(點選納入你的清單)</h3><div class="toolgrid mt">${chipList(ddxItems,'ddx')}</div>
+      <p style="font-size:12px;color:var(--faint);margin-top:12px;">已納入 ${Object.values(R.ddx).filter(Boolean).length} 項——哪些證據支持?哪些需要檢查排除?</p>`;
+    else if(cur===3) mainPanel=`<h3>🔬 檢查判讀(點擊標記你認為的關鍵發現)</h3><div class="mt">${chipList(labItems,'lab','mark')}</div>
+      <p style="font-size:12px;color:var(--faint);margin-top:12px;">已標記 ${Object.values(R.lab).filter(Boolean).length} 項關鍵發現。</p>`;
+    else if(cur===4) mainPanel=`<h3>💊 處置(點選開立醫令)</h3><div class="toolgrid mt">${chipList(txItems,'tx')}</div>
+      <p style="font-size:12px;color:var(--faint);margin-top:12px;">已開立 ${Object.values(R.tx).filter(Boolean).length} 項。</p>`;
+    else if(cur===5) mainPanel=`<h3>📞 虛擬醫師回報(SBAR)</h3>
+      <textarea class="fbta" style="height:190px" placeholder="S(situation):58 歲男性,上腹痛三天併黑便…&#10;B(background):長期 NSAID 使用…&#10;A(assessment):…&#10;R(recommendation):…"></textarea>
+      <div class="mt"><button class="mini-btn" onclick="flash('原型示意:AI 虛擬主治醫師將針對 SBAR 結構與內容給予即時回饋')">送出回報</button></div>`;
+    else mainPanel=`<h3>🏁 總結</h3><ul class="obj mt">
+      <li>你完成了:問診 → 身體診察 → 鑑別診斷 → 檢查判讀 → 處置 → 回報 的完整臨床流程</li>
+      <li>個案核心:NSAID 相關消化性潰瘍出血的辨識、血行動力學評估與初步處置</li>
+      <li>按「完成總結」後,AI 將彙整你各步驟的表現產生回饋(正式版功能)</li></ul>`;
+  }
   const panels={
     chart:`<b>病歷摘要(EMR)</b><br>58 歲男性。過去病史:退化性膝關節炎,長期服用 NSAID 止痛。<br>無手術史;<b>過敏史:無</b>。抽菸 30 包-年,偶爾飲酒。<br>家族史:父親胃癌。`,
     lab:`<b>檢驗結果(已回覆)</b><br>CBC:Hb <span class="abn">8.9 g/dL ↓</span>、MCV 82、PLT 215K<br>BUN <span class="abn">42 mg/dL ↑</span> / Cr 1.0 mg/dL<br>肝功能正常。<br><button class="mini-btn" style="margin-top:8px" onclick="alert('原型示意:開立醫令介面(CPOE)')">＋ 開立醫令 / 檢驗</button>`,
     img:`<b>影像(PACS)</b><br>CXR:無 free air,心肺無明顯異常。<br>腹部超音波:未見明顯異常。<br><span style="color:var(--faint)">上消化道內視鏡:已照會,待排程。</span>`,
-    report:`<b>虛擬醫師回報(SBAR)</b><br>向虛擬主治醫師報告你的評估與計畫:<textarea placeholder="S(situation):58歲男性,上腹痛三天併黑便…&#10;B(background):…&#10;A(assessment):…&#10;R(recommendation):…"></textarea><button class="mini-btn" style="margin-top:8px" onclick="alert('原型示意:AI 虛擬主治醫師將針對你的 SBAR 結構與內容給予即時回饋')">送出回報</button>`
+    report:`<b>虛擬醫師回報(SBAR)</b><br>向虛擬主治醫師報告你的評估與計畫:<textarea placeholder="S(situation):58歲男性,上腹痛三天併黑便…&#10;B(background):…&#10;A(assessment):…&#10;R(recommendation):…"></textarea><button class="mini-btn" style="margin-top:8px" onclick="alert('原型示意:AI 虛擬主治醫師將針對你的 SBAR 結構與內容給予即時回饋')">送出回報</button>`,
+    pt: cur>0?(`<b>🧑 病人對話(隨時可回頭詢問)</b>`+chatHtml(key,"陳先生","補問病人…","sendChat('a4')")):""
   };
+  const tabList=[["chart","病歷 EMR"],["lab","醫令/檢驗"],["img","影像"],["report","虛擬醫師回報"]].concat(cur>0?[["pt","病人對話"]]:[]);
   return shellFor("learner","/learner/catalog", `
     <span class="back" onclick="go('/learner/act/${id}')">← 離開臨床環境(進度已保存)</span>
     <div class="d-head">
@@ -865,19 +1025,13 @@ function pageRun(id){
     ):""}
     ${isA4?`
     <div class="run-grid">
-      <div class="cardx">
-        <h3>🧑 虛擬病人 · 陳先生(58 歲)</h3>
-        ${chatHtml(key,"陳先生","輸入你想問病人的問題…","sendChat('a4')")}
-      </div>
+      <div class="cardx">${mainPanel}</div>
       <div class="cardx">
         <h3>🛠 臨床工具(依教案藍圖掛載)</h3>
         <div class="ttabs">
-          <button class="${S.toolTab==='chart'?'on':''}" onclick="setTool('chart')">病歷 EMR</button>
-          <button class="${S.toolTab==='lab'?'on':''}" onclick="setTool('lab')">醫令/檢驗</button>
-          <button class="${S.toolTab==='img'?'on':''}" onclick="setTool('img')">影像</button>
-          <button class="${S.toolTab==='report'?'on':''}" onclick="setTool('report')">虛擬醫師回報</button>
+          ${tabList.map(t=>`<button class="${S.toolTab===t[0]?'on':''}" onclick="setTool('${t[0]}')">${t[1]}</button>`).join("")}
         </div>
-        <div class="tpanel">${panels[S.toolTab]}</div>
+        <div class="tpanel">${panels[S.toolTab]||panels.chart}</div>
         <div class="coach">
           <div class="c-h">🤖 AI 臨床教練 <button class="mini-btn" style="margin-left:auto" onclick="togHint()">${S.hint?"隱藏提示":"顯示提示"}</button></div>
           ${S.hint?`<p>提示:黑便 + 長期 NSAID 使用史——你的鑑別診斷清單裡有哪些?Hb 8.9 搭配站立性頭暈,別忘了先評估血行動力學穩定度,再想下一步檢查。</p>`
@@ -888,7 +1042,7 @@ function pageRun(id){
     </div>`:`
     <div class="cardx mt2">
       <h3>虛擬臨床環境</h3>
-      <p style="font-size:13px;color:var(--sub);line-height:1.9;">原型以「上腹痛(CBL)」為完整示範——虛擬病人對話、EMR、醫令檢驗、影像、虛擬醫師回報與 AI 教練皆可互動。其他活動將依各自教案藍圖載入對應的工具組(例如本活動:${a.stages.join(" → ")})。</p>
+      <p style="font-size:13px;color:var(--sub);line-height:1.9;">原型以「上腹痛(CBL)」為完整示範——各階段主面板(問診/診察/鑑別/判讀/處置/回報)、臨床工具與 AI 教練皆可互動。其他活動將依各自教案藍圖載入對應的工具組(例如本活動:${a.stages.join(" → ")})。</p>
       <div class="mt"><button class="btn sm" onclick="go('/learner/run/a4')">→ 體驗完整示範(上腹痛)</button></div>
     </div>`}
   `);
@@ -896,6 +1050,14 @@ function pageRun(id){
 
 /* ===================== 學員:歷程 / 排行榜 / 協作 / 設定 ===================== */
 function pageHistory(){
+  const u=cur();
+  if(!u.isDemo){
+    return shellFor("learner","/learner/history", `
+      <div class="crumb">學員介面 LEARNER</div>
+      <div class="pg-t">學習歷程與回饋</div>
+      <div class="ph"><h3>尚無活動紀錄</h3><p style="margin-top:6px;">完成第一個虛擬臨床活動後,你的紀錄、AI 回饋與能力成長曲線會出現在這裡。${u.hasGrades?"你匯入的課程成績已作為初始能力推估(見儀表板能力雷達)。":""}</p></div>
+    `);
+  }
   const done=DB.records.filter(r=>r.status==="done");
   return shellFor("learner","/learner/history", `
     <div class="crumb">學員介面 LEARNER</div>
@@ -932,6 +1094,7 @@ function pageBoard(){
     <div class="crumb">學員介面 LEARNER</div>
     <div class="pg-t">排行榜與挑戰</div>
     <div class="pg-s">以努力為主的計分:活動量、連續天數與 XP。排名是參考,不是評價。</div>
+    ${cur().isDemo?"":'<div class="okbar">你是新加入的學員:完成活動累積 XP 後,將自動進入排行榜(以下為班級示意資料)。</div>'}
     <div class="tabs">
       ${tabs.map(t=>`<button class="${S.boardTab===t[0]?'on':''}" onclick="setBoard('${t[0]}')">${t[1]}</button>`).join("")}
       <button style="margin-left:auto" class="${S.anon?'on':''}" onclick="togAnon()">${S.anon?"👁 匿名顯示中":"匿名顯示"}</button>
@@ -950,34 +1113,61 @@ function pageBoard(){
     <div class="ph">設計保護(依網站地圖 v2):可選匿名暱稱顯示;計分以努力型指標為主,避免純能力排名造成後段學員挫折;個人可於「通知與設定」關閉自己出現在排行榜。</div>
   `);
 }
-function selPeer(n){ S.peer=n; render(); }
-function sendPeer(){
+/* v7:跨帳號站內訊息(訊息存於共用資料層,對方登入即見) */
+function myAcct(){ return cur().acct || "301042"; }
+function thKey(a,b){ return [a,b].sort().join("|"); }
+function peersList(){ return DB.students.filter(s=>s.acct!==myAcct()); }
+function unreadFrom(acct){
+  const th=DB.threads[thKey(myAcct(),acct)]||[];
+  return th.length>0 && th[th.length-1].from===acct && S.peerAcct!==acct;
+}
+function socialUnread(){ return peersList().filter(s=>unreadFrom(s.acct)).length; }
+function selPeerA(acct){ S.peerAcct=acct; render(); }
+function sendPeerMsg(){
   const el=document.getElementById('chatIn');
-  if(!el||!el.value.trim()) return;
-  const key='peer-'+S.peer;
-  if(!S.chat[key]) S.chat[key]=[];
-  S.chat[key].push({who:'me',text:el.value.trim()});
-  const replies=["好啊!我今天晚上有空","收到~我先看一下活動內容","我們約線上一起做?"];
-  const i=S.chatIdx[key]||0;
-  S.chat[key].push({who:'pt',text:replies[i%replies.length]});
-  S.chatIdx[key]=i+1; render();
+  if(!el||!el.value.trim()||!S.peerAcct) return;
+  const k=thKey(myAcct(),S.peerAcct);
+  if(!DB.threads[k]) DB.threads[k]=[];
+  DB.threads[k].push({from:myAcct(), text:el.value.trim(), t:nowStr()});
+  /* 示範帳號(張/周)自動回覆增加互動感;真實匯入帳號不自動回,待對方登入 */
+  const bot={"404117":["好啊!我今天晚上有空","收到~我先看一下活動內容","我們約線上一起做?"],
+             "301095":["讚,我也想練那題","晚點討論?我先把 IHCA 看完","走起!"]}[S.peerAcct];
+  if(bot){
+    const k2='bot-'+S.peerAcct; const i=S.chatIdx[k2]||0;
+    DB.threads[k].push({from:S.peerAcct, text:bot[i%bot.length], t:nowStr()});
+    S.chatIdx[k2]=i+1;
+  }
+  render();
   const lg=document.getElementById('clog'); if(lg) lg.scrollTop=lg.scrollHeight;
 }
 function doInvite(){ S.invited=true; render(); }
 function pageSocial(){
-  const key='peer-'+S.peer;
-  if(!S.chat[key]) S.chat[key]=[{who:'pt',text:"嗨!你最近打到 Lv.4 了喔,好快!"}];
+  const me=myAcct();
+  const list=peersList();
+  if(!S.peerAcct||S.peerAcct===me||!list.some(s=>s.acct===S.peerAcct)) S.peerAcct=list.length?list[0].acct:null;
+  const peer=list.find(s=>s.acct===S.peerAcct);
+  const th=peer?(DB.threads[thKey(me,peer.acct)]||[]):[];
   return shellFor("learner","/learner/social", `
     <div class="crumb">學員介面 LEARNER</div>
     <div class="pg-t">同儕與協作</div>
-    <div class="pg-s">找同學一起,把個案當成團隊任務。</div>
+    <div class="pg-s">站內訊息與組隊——訊息送達對方帳號,對方登入即可讀取與回覆。</div>
     <div class="grid2 mt2">
       <div class="cardx">
-        <h3>站內訊息</h3>
+        <h3>站內訊息${socialUnread()?` <span class="tagx red">${socialUnread()} 未讀</span>`:""}</h3>
         <div class="tabs" style="margin-top:0">
-          ${DB.peers.map(p=>`<button class="${S.peer===p?'on':''}" onclick="selPeer('${p}')">${p}</button>`).join("")}
+          ${list.map(s=>`<button class="${S.peerAcct===s.acct?'on':''}" onclick="selPeerA('${s.acct}')">${s.name}${unreadFrom(s.acct)?' <span style="color:var(--red)">●</span>':''}</button>`).join("")}
         </div>
-        <div class="mt">${chatHtml(key,S.peer,"傳訊息給 "+S.peer+"…","sendPeer()")}</div>
+        ${peer?`<div class="chatbox mt">
+          <div class="chatlog" id="clog">
+            ${th.length?th.map(m=>`<div class="msg ${m.from===me?'me':'pt'}"><div class="who">${m.from===me?'你':peer.name} · ${m.t}</div>${m.text}</div>`).join("")
+              :`<p style="color:var(--faint);font-size:12.5px;padding:12px 4px;">還沒有對話——打個招呼吧!</p>`}
+          </div>
+          <div class="chatin">
+            <input id="chatIn" placeholder="傳訊息給 ${peer.name}…" onkeydown="if(event.key==='Enter')sendPeerMsg()">
+            <button class="btn sm" onclick="sendPeerMsg()">送出</button>
+          </div>
+        </div>`:`<div class="ph">學員資料庫中還沒有其他學員——請管理者先匯入名單。</div>`}
+        <p style="font-size:11px;color:var(--faint);margin-top:8px;">示範:張同學、周同學會自動回覆;其他學員(含你匯入的帳號)收到訊息後,以該帳號登入即可讀取與回覆——可實際跨帳號測試。</p>
       </div>
       <div class="cardx">
         <h3>邀請組隊 · 多人協作活動</h3>
@@ -1038,12 +1228,13 @@ function pageTDash(){
     <div class="cardx mt"><h3>開設活動總覽</h3>
       <table class="tbl">
         <tr><th>活動</th><th>模式</th><th>對象</th><th>完成率</th><th>主要卡關點</th><th>狀態</th></tr>
-        ${DB.teacherActs.map(t=>`<tr>
+        ${DB.teacherActs.map((t,i)=>`<tr class="rowlink" onclick="S.tact=${i};go('/teacher/activity')">
           <td><b>${t.title}</b></td><td>${modeTag(t.mode)}</td><td>${t.who}</td>
           <td style="min-width:130px">${barRow("",t.done,"var(--teal)").replace('class="lb"','class="lb" style="display:none"')}</td>
           <td>${t.stuck}</td><td><span class="tagx ${t.status==='進行中'?'gold':'teal'}">${t.status}</span></td>
         </tr>`).join("")}
       </table>
+      <p style="font-size:11.5px;color:var(--faint);margin-top:8px;">點任一列可進入該活動的即時監控頁。</p>
     </div>
     <div class="grid2 mt">
       <div class="cardx"><h3>AI 標記學員 <span class="tagx blue">AI</span></h3>
@@ -1092,13 +1283,21 @@ function pageTEditor(){
       <span style="margin-left:auto"><span class="tagx ${e.status==='審查中'?'gold':'gray'}">${e.status}</span></span>
     </div>
 
+    <div class="cardx mt"><h3>我的教案</h3>
+      <div class="case-item"><b>上腹痛 活動藍圖</b><span style="color:var(--faint)">v0.1 · 編輯中</span>
+        <span class="tagx ${e.status==='已通過'?'teal':(e.status==='審查中'?'gold':(e.status==='退回修正'?'red':'gray'))}">${e.status}</span></div>
+      <div class="case-item"><b>發燒的評估與處置</b><span style="color:var(--faint)">v1.2</span><span class="tagx teal">已通過</span></div>
+      <div class="case-item"><b>AI 虛擬病人問診練習</b><span style="color:var(--faint)">v1.0</span><span class="tagx teal">已通過</span></div>
+    </div>
+
     <div class="cardx mt"><h3>① 智慧個案查找 <span class="tagx blue">AI</span></h3>
       <div class="chatin" style="margin-top:0">
-        <input placeholder="以主訴 / 診斷 / 難度 / 教學目標搜尋…(例:上腹痛 出血 難度2)">
-        <button class="btn sm" onclick="alert('原型示意:AI 依條件搜尋去識別化個案庫')">搜尋</button>
+        <input id="ce-q" value="${S.caseQuery}" placeholder="以主訴 / 診斷 / 科別搜尋…(例:上腹痛)" onkeydown="if(event.key==='Enter'){S.caseQuery=this.value;render()}">
+        <button class="btn sm" onclick="S.caseQuery=document.getElementById('ce-q').value;render()">搜尋</button>
+        ${S.caseQuery?`<button class="mini-btn" onclick="S.caseQuery='';render()">清除</button>`:""}
       </div>
       <div class="mt">
-        ${DB.cases.filter(x=>x.status==="已通過").map(x=>`<div class="case-item ${e.caseId===x.id?'sel':''}">
+        ${DB.cases.filter(x=>x.status==="已通過"&&(S.caseQuery===""||(x.brief+x.dx+x.dept).includes(S.caseQuery))).map(x=>`<div class="case-item ${e.caseId===x.id?'sel':''}">
           <b>${x.brief}</b><span style="color:var(--faint)">${x.dx} · ${x.dept} · 難度${x.diff}</span>
           <span class="tagx teal">${x.status} ${x.ver}</span>
           <button class="mini-btn ${e.caseId===x.id?'on':''}" style="margin-left:auto" onclick="selCase('${x.id}')">${e.caseId===x.id?"✓ 已選用":"選用"}</button>
@@ -1150,17 +1349,17 @@ function pageTCourses(){
     <div class="crumb">教師介面 FACULTY</div>
     <div class="pg-t">課程活動管理</div>
     <div class="toolbar">
-      <button class="btn sm" onclick="alert('原型示意:從已審核教案建立新活動(選模式:自我學習/課堂教學/多人協作 → 排程 → 選對象/分組)')">＋ 建立活動</button>
+      <button class="btn sm" onclick="openModal('newAct')">＋ 建立活動</button>
     </div>
     <div class="cardx mt"><h3>已開設活動</h3>
       <table class="tbl">
         <tr><th>活動</th><th>模式</th><th>排程</th><th>對象</th><th>狀態</th><th>操作</th></tr>
-        <tr><td><b>上腹痛 CBL</b></td><td>${modeTag("課堂教學(CBL)")}</td><td>09/26(五)10:10</td><td>醫四 A 班 · 6 組</td><td><span class="tagx gold">進行中</span></td>
-          <td><button class="mini-btn" onclick="alert('原型示意:編輯活動設定')">編輯</button></td></tr>
-        <tr><td><b>發燒的評估與處置</b></td><td>${modeTag("自我學習")}</td><td>常駐開放</td><td>醫四全年級</td><td><span class="tagx teal">開放中</span></td>
-          <td><button class="mini-btn" onclick="alert('原型示意:編輯活動設定')">編輯</button></td></tr>
-        <tr><td><b>AI 虛擬病人問診練習</b></td><td>${modeTag("自我學習")}</td><td>常駐開放</td><td>護理三</td><td><span class="tagx teal">開放中</span></td>
-          <td><button class="mini-btn" onclick="alert('原型示意:編輯活動設定')">編輯</button></td></tr>
+        ${DB.teacherActs.map((t,i)=>`<tr>
+          <td><b>${t.title}</b></td><td>${modeTag(t.mode)}</td><td>${t.sched}</td><td>${t.who}</td>
+          <td><span class="tagx ${t.status==='進行中'?'gold':(t.status==='未開始'?'gray':'teal')}">${t.status}</span></td>
+          <td><button class="mini-btn" onclick="S.tact=${i};go('/teacher/activity')">監控</button>
+              <button class="mini-btn" onclick="flash('原型示意:編輯活動設定')">編輯</button></td>
+        </tr>`).join("")}
       </table>
     </div>
     <div class="cardx mt"><h3>課堂控場 · 上腹痛 CBL(09/26)</h3>
@@ -1190,7 +1389,7 @@ function pageTData(){
         ${DB.learnersData.map(l=>`<tr>
           <td><b>${l.n}</b></td><td>${l.done}</td><td>${l.avg}</td><td>${l.weak}</td>
           <td><button class="mini-btn" onclick="scoreLearner('${l.n}')">Rubric 評分</button>
-              <button class="mini-btn" onclick="alert('原型示意:開啟 ${l.n} 的個人能力報表')">報表</button></td>
+              <button class="mini-btn" onclick="S.viewLearner='${l.n}';go('/teacher/learner')">報表</button></td>
         </tr>`).join("")}
       </table>
       <div class="mt"><button class="btn ghost sm" onclick="alert('原型示意:匯出班級報表(教學檔案 / 課程評鑑用)')">⬇ 匯出班級報表</button></div>
@@ -1227,22 +1426,29 @@ function pageTLibrary(){
 }
 
 /* 臨床審查(審查者視角:資深教師子角色 — 共用審核工作流的接收端) */
+function bumpVer(v){ return "v"+(Math.round((parseFloat(v.slice(1))+0.1)*10)/10).toFixed(1); }
 function doReview(id, verdict){
   const ta=document.getElementById('rv-'+id);
   const note=ta?ta.value.trim():"";
   if(verdict==="退回"&&!note){ alert("退回必須附上審查意見,協助作者修正。"); return; }
   S.reviewDone[id]={r:verdict, note:note};
-  if(id==="c05"){
-    const c=DB.cases.find(x=>x.id==="c05");
-    if(verdict==="通過"){ c.status="已通過"; c.ver="v1.0"; c.issue=null; }
+  if(id.startsWith("c")){
+    const c=DB.cases.find(x=>x.id===id);
+    if(verdict==="通過"){ c.status="已通過"; c.ver=bumpVer(c.ver); c.issue=null; }
     else { c.status="退回修正"; }
+    audit("陳老師(審查者)","審查個案 "+id+":"+verdict+(note?"(附意見)":""));
+  }
+  if(id==="bp1"){
+    S.editor.status=(verdict==="通過")?"已通過":"退回修正";
+    audit("陳老師(審查者)","審查教案「上腹痛 活動藍圖」:"+verdict);
   }
   render();
 }
 function pageTReview(){
-  const items=[];
-  items.push({id:"c05", type:"個案資料", brief:"47 歲女性,發燒併低血壓(敗血性休克)", from:"平台管理員", ver:"v0.9",
-    ai:"AI 預檢:發現 1 項不一致——病歷記載「無藥物過敏」,病人陳述含「青黴素過敏」。建議退回修正後再審。", warn:true});
+  const items=DB.cases.filter(c=>c.status==="審查中").map(c=>({
+    id:c.id, type:"個案資料", brief:c.brief+"("+c.dx+")", from:"平台管理員", ver:c.ver,
+    ai:c.issue?("AI 預檢:發現 1 項不一致——"+c.issue):("AI 預檢:資料完整度 "+c.comp+"%,未發現一致性問題。"),
+    warn:!!c.issue||c.comp<90}));
   if(S.editor.status==="審查中"){
     const assessed=Object.keys(S.editor.assess).length;
     items.push({id:"bp1", type:"教案藍圖", brief:"上腹痛(消化性潰瘍併上消化道出血)活動藍圖", from:"陳老師", ver:"v0.1",
@@ -1390,56 +1596,93 @@ function pageAdminAccounts(){
       <div class="stat"><b style="color:var(--gold)">6</b><span>待啟用</span></div>
     </div>
     <div class="toolbar">
-      <button class="btn sm" onclick="alert('原型示意:開啟新增帳號表單')">＋ 新增帳號</button>
-      <button class="mini-btn" onclick="alert('原型示意:上傳名冊 CSV 批次建立帳號')">⬆ 批次匯入(CSV)</button>
+      <button class="btn sm" onclick="openModal('newAcc')">＋ 新增帳號</button>
+      <button class="mini-btn" onclick="flash('原型示意:上傳名冊 CSV 批次建立帳號')">⬆ 批次匯入(CSV)</button>
     </div>
     <div class="cardx mt"><h3>帳號列表</h3>
       <table class="tbl">
-        <tr><th>姓名</th><th>角色</th><th>單位</th><th>狀態</th><th>操作</th></tr>
-        ${DB.accounts.map(a=>`<tr>
-          <td><b>${a.name}</b></td>
+        <tr><th>帳號</th><th>姓名</th><th>角色</th><th>單位</th><th>密碼</th><th>狀態</th><th>操作</th></tr>
+        ${DB.accounts.map((a,i)=>`<tr class="${S.lastBatch.includes(a.acct)?'hl':''}">
+          <td style="font-family:Georgia,serif;letter-spacing:1px;"><b>${a.acct||"—"}</b></td>
+          <td><b>${a.name}</b>${a.noName?' <span style="font-size:10px;color:var(--faint)">(姓名待補)</span>':''}</td>
           <td>${a.roles.map(r=>`<span class="tagx ${roleTag(r)}">${r}</span>`).join(" ")}${a.roles.length>1?' <span style="font-size:10.5px;color:var(--faint)">(多重角色)</span>':''}</td>
           <td>${a.unit}</td>
+          <td>${a.pwd==="init"?'<span class="tagx gold">初始(=帳號)</span>':(a.pwd==="—"?"—":'<span class="tagx gray">已自訂</span>')}</td>
           <td>${a.status==="啟用"?'<span class="tagx teal">啟用</span>':'<span class="tagx red">停用</span>'}</td>
-          <td><button class="mini-btn" onclick="alert('原型示意:編輯帳號與角色指派')">編輯</button></td>
+          <td><button class="mini-btn" onclick="openModal('editAcc',${i})">編輯</button>
+              ${a.acct&&a.acct!=="—"?`<button class="mini-btn" onclick="resetPwd(${i})">重設密碼</button>`:""}</td>
         </tr>`).join("")}
       </table>
+      <p style="font-size:11.5px;color:var(--faint);margin-top:10px;">帳號規則:6 碼=入學西元年末碼(1)+學系代碼(2)+學號末三碼(3);初始密碼=帳號,首次登入強制變更(正式版實作)。剛建立的帳號以綠色底標示。</p>
     </div>
     <div class="cardx mt"><h3>導師—導生配對</h3>
-      ${DB.pairs.map(p=>`<div class="pairx">
-        <b>${p.mentor}</b><span class="ar">⟶</span>${p.mentees.join("、")}
+      ${DB.pairs.map((p,i)=>`<div class="pairx">
+        <b>${p.mentor}</b><span class="ar">⟶</span>${p.mentees.join("、")||"(尚無導生)"}
         <span style="color:var(--faint);font-size:11.5px;">(${p.mentees.length} 位導生)</span>
-        <button class="mini-btn" style="margin-left:auto" onclick="alert('原型示意:調整配對名單')">調整配對</button>
+        <button class="mini-btn" style="margin-left:auto" onclick="openModal('pair',${i})">調整配對</button>
       </div>`).join("")}
     </div>
   `);
 }
 function runCheck(cid){ S.checked=cid; render(); }
+function caseStatusTag(s){
+  const m={"已通過":"teal","審查中":"gold","建構中":"gray","退回修正":"red"};
+  return `<span class="tagx ${m[s]||'gray'}">${s}</span>`;
+}
+function submitCase(cid){
+  const c=DB.cases.find(x=>x.id===cid);
+  c.status="審查中";
+  audit("平台管理員","個案 "+cid+"("+c.dx+")送交臨床審查 "+c.ver);
+  flash("已送交臨床審查(教師端「臨床審查」佇列可見)");
+}
 function pageAPatients(){
   const c=DB.cases.find(x=>x.id===S.checked);
+  const v=DB.cases.find(x=>x.id===S.caseView);
   return shellFor("admin","/admin/patients", `
     <div class="crumb">管理者介面 ADMIN</div>
     <div class="pg-t">虛擬病人資料管理</div>
-    <div class="pg-s">去識別化病人背景資料庫:病歷、影像、檢驗與教師標記的個案訊息。</div>
+    <div class="pg-s">去識別化病人背景資料庫:病歷、影像、檢驗與教師標記的個案訊息。點列可查看個案詳情。</div>
     <div class="toolbar">
-      <button class="btn sm" onclick="alert('原型示意:匯入新個案(去識別化流程 → 結構化 → 送審)')">＋ 匯入個案</button>
+      <button class="btn sm" onclick="openModal('importCase')">＋ 匯入個案</button>
     </div>
     <div class="cardx mt"><h3>個案庫</h3>
       <table class="tbl">
         <tr><th>編號</th><th>個案</th><th>診斷</th><th>完整度</th><th>審核狀態</th><th>版本</th><th>AI 檢查</th></tr>
-        ${DB.cases.map(x=>`<tr>
+        ${DB.cases.map(x=>`<tr class="rowlink" onclick="S.caseView='${x.id}';render()">
           <td>${x.id}</td><td><b>${x.brief}</b></td><td>${x.dx}</td>
           <td>${x.comp}%</td>
-          <td><span class="tagx ${x.status==='已通過'?'teal':'gold'}">${x.status}</span></td>
+          <td>${caseStatusTag(x.status)}</td>
           <td>${x.ver}</td>
-          <td><button class="mini-btn ${S.checked===x.id?'on':''}" onclick="runCheck('${x.id}')">一致性檢查</button></td>
+          <td><button class="mini-btn ${S.checked===x.id?'on':''}" onclick="event.stopPropagation();runCheck('${x.id}')">一致性檢查</button></td>
         </tr>`).join("")}
       </table>
     </div>
+    ${v?`<div class="cardx mt"><h3>個案詳情 · ${v.id} <span style="color:var(--txt)">${v.brief}</span> ${caseStatusTag(v.status)}</h3>
+      <div class="grid2">
+        <div>
+          <p style="font-size:12px;color:var(--faint);letter-spacing:1px;margin-bottom:4px;">資料組成完整度</p>
+          ${barRow("病歷資料",Math.min(100,v.comp+2),"var(--teal)")}
+          ${barRow("影像",Math.max(10,v.comp-6),"var(--teal)")}
+          ${barRow("檢驗檢查",Math.min(100,v.comp),"var(--teal)")}
+          ${barRow("病人陳述劇本",Math.max(10,v.comp-10),"var(--gold)")}
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--faint);letter-spacing:1px;margin-bottom:4px;">版本與動作</p>
+          <p style="font-size:13px;color:var(--sub);line-height:1.9;">目前版本 <b style="color:var(--txt)">${v.ver}</b> · 難度 ${v.diff} · ${v.dept}</p>
+          <div class="toolbar" style="margin-top:10px;">
+            ${v.status==="建構中"?`<button class="btn sm" onclick="submitCase('${v.id}')">送交臨床審查 →</button>`:""}
+            ${v.status==="退回修正"?`<button class="btn sm" onclick="submitCase('${v.id}')">修正完成,重新送審 →</button>`:""}
+            ${v.status==="審查中"?`<span class="tagx gold">等待審查者處理(教師端 · 臨床審查)</span>`:""}
+            ${v.status==="已通過"?`<span class="tagx teal">已上線,可供教案編輯器選用</span>`:""}
+            <button class="mini-btn" onclick="flash('原型示意:開啟資料編輯介面')">編輯資料</button>
+          </div>
+        </div>
+      </div>
+    </div>`:""}
     ${c?`<div class="cardx mt"><h3>AI 一致性檢查結果 · ${c.id} <span class="tagx blue">AI</span></h3>
       ${c.issue?`<div class="warnbar">⚠ 發現 1 項不一致:${c.issue}</div>
         <p style="font-size:12px;color:var(--faint);margin-top:10px;line-height:1.7;">檢查範圍:病歷 ↔ 影像 ↔ 檢驗 ↔ 虛擬病人陳述劇本。不一致的資料會造成學員在活動中得到矛盾訊息(實際課堂測試中曾發生),務必於上線前修正。</p>
-        <button class="mini-btn warn" style="margin-top:10px" onclick="alert('原型示意:開啟修正介面,修正後版本 +0.1 並重新送審')">前往修正 →</button>`
+        <button class="mini-btn warn" style="margin-top:10px" onclick="flash('原型示意:開啟修正介面,修正後可重新送審')">前往修正 →</button>`
       :`<div class="okbar">✓ 未發現不一致:病歷、影像、檢驗與病人陳述相互吻合,可安心用於教案。</div>`}
     </div>`:""}
   `);
@@ -1458,7 +1701,10 @@ function pageAAvatar(){
     <div class="crumb">管理者介面 ADMIN</div>
     <div class="pg-t">Avatar 建構管理</div>
     <div class="pg-s">虛擬病人的外觀、語音、個性與對話風格;上線前先在沙盒試講。</div>
-    <div class="grid3 mt2">
+    <div class="toolbar">
+      <button class="btn sm" onclick="openModal('newAva')">＋ 新增 Avatar</button>
+    </div>
+    <div class="grid3 mt">
       ${DB.avatars.map(av=>{
         const msgs=S.chat['ava-'+av.id]||[];
         return `<div class="cardx">
@@ -1481,36 +1727,532 @@ function pageASystem(){
     <div class="crumb">管理者介面 ADMIN</div>
     <div class="pg-t">系統設定與稽核</div>
     <div class="grid2 mt2">
-      <div class="cardx"><h3>能力框架與等級規則</h3>
-        <table class="tbl">
-          <tr><th>等級</th><th>累積 XP 門檻</th></tr>
-          ${DB.xpRules.map(r=>`<tr><td><b>Lv.${r.lv}</b></td><td>${r.need} XP</td></tr>`).join("")}
-        </table>
-        <div class="toolbar"><button class="mini-btn" onclick="alert('原型示意:編輯 XP 規則與活動解鎖門檻(變更需教學委員會核定)')">編輯規則</button></div>
+      <div class="cardx"><h3>使用統計(本月)</h3>
+        <div class="stat-row" style="grid-template-columns:repeat(2,1fr);margin-top:4px;">
+          <div class="stat"><b>1,284</b><span>活動場次</span></div>
+          <div class="stat"><b>86%</b><span>週活躍學員</span></div>
+        </div>
       </div>
-      <div>
-        <div class="cardx"><h3>排行榜計分設定</h3>
-          <div class="toolgrid">
-            <span class="toolchip on">✓ 努力型指標(活動量/連續天數)</span>
-            <span class="toolchip on">✓ 允許匿名顯示</span>
-            <span class="toolchip on">✓ 允許退出排行榜</span>
-            <span class="toolchip">純分數排名(停用)</span>
-          </div>
-        </div>
-        <div class="cardx mt"><h3>使用統計(本月)</h3>
-          <div class="stat-row" style="grid-template-columns:repeat(2,1fr);margin-top:4px;">
-            <div class="stat"><b>1,284</b><span>活動場次</span></div>
-            <div class="stat"><b>86%</b><span>週活躍學員</span></div>
-          </div>
-        </div>
+      <div class="cardx"><h3>規則設定入口</h3>
+        <p style="font-size:13px;color:var(--sub);line-height:1.9;">等級門檻、成績換算、課程對應、活動 XP、排行榜計分等所有規則,集中於「<a href="#/admin/rules">XP 與能力規則</a>」定義區維護。</p>
       </div>
     </div>
     <div class="cardx mt"><h3>稽核紀錄(資料存取軌跡)</h3>
       <table class="tbl">
         <tr><th>時間</th><th>使用者</th><th>行為</th></tr>
-        ${DB.audit.map(a=>`<tr><td>${a.t}</td><td><b>${a.who}</b></td><td>${a.act}</td></tr>`).join("")}
+        ${DB.audit.slice(0,10).map(a=>`<tr><td>${a.t}</td><td><b>${a.who}</b></td><td>${a.act}</td></tr>`).join("")}
       </table>
-      <p style="font-size:11.5px;color:var(--faint);margin-top:10px;">所有學員資料的存取都留有紀錄——教育資料治理的基本要求。</p>
+      <p style="font-size:11.5px;color:var(--faint);margin-top:10px;">所有學員資料的存取與重要操作都留有紀錄——教育資料治理的基本要求。你在本原型中的操作(建立活動、送審、審查、帳號調整…)會即時出現在這裡。</p>
+    </div>
+  `);
+}
+
+/* ===================== v4:共用工具(稽核/提示/彈窗) ===================== */
+function nowStr(){ const d=new Date(); const p=n=>("0"+n).slice(-2); return p(d.getMonth()+1)+"/"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes()); }
+function audit(who,act){ DB.audit.unshift({t:nowStr(), who:who, act:act}); }
+function flash(m){ S.flash=m; render(); setTimeout(()=>{ S.flash=null; if(!S.modal) render(); },2400); }
+function openModal(t,a){ S.modal={t:t,a:a}; render(); }
+function closeModal(){ S.modal=null; render(); }
+function togCfg(k){ S.boardCfg[k]=!S.boardCfg[k]; audit("平台管理員","變更排行榜計分設定:"+k+"="+S.boardCfg[k]); render(); }
+function saveXp(){
+  DB.xpRules.forEach(r=>{ const el=document.getElementById('xp-'+r.lv); if(el){ const v=parseInt(el.value); if(!isNaN(v)) r.need=v; } });
+  audit("平台管理員","更新等級 XP 門檻規則");
+  flash("XP 規則已更新");
+}
+
+/* ---- v4:表單提交 ---- */
+function createActivity(){
+  const ci=document.getElementById('na-case'), mo=document.getElementById('na-mode'),
+        who=document.getElementById('na-who'), wh=document.getElementById('na-when');
+  if(!who.value.trim()){ alert("請輸入開放對象"); return; }
+  const c=DB.cases.find(x=>x.id===ci.value);
+  DB.teacherActs.push({title:c.dx, mode:mo.value, who:who.value.trim(), sched:wh.value.trim()||"未排程", done:0, stuck:"—", status:"未開始"});
+  audit("陳老師(教師)","建立課程活動「"+c.dx+"」("+mo.value+")");
+  closeModal(); flash("已建立活動「"+c.dx+"」");
+}
+/* ---- v5:帳號建立(六碼規則:入學年末碼+學系代碼+學號末三碼) ---- */
+function pad3(n){ return ("00"+n).slice(-3); }
+function setAccMode(m){
+  const y=document.getElementById('ba-year'); if(y) S.accY=y.value;
+  const d=document.getElementById('ba-dept'); if(d) S.accD=d.value;
+  S.accMode=m; render();
+}
+function createAccounts(){
+  const yr=document.getElementById('ba-year').value.trim();
+  if(!/^\d{4}$/.test(yr)){ alert("請輸入四位西元入學年(例:2026)"); return; }
+  const y=yr.slice(-1), dept=document.getElementById('ba-dept').value, deptName=DB.deptCodes[dept];
+  S.accY=yr; S.accD=dept;
+  let items=[];
+  if(S.accMode==="single"){
+    const l3=document.getElementById('ba-last3').value.trim();
+    if(!/^\d{1,3}$/.test(l3)){ alert("請輸入學號末三碼(數字)"); return; }
+    items.push({last3:pad3(l3), name:document.getElementById('ba-name').value.trim()});
+  }
+  if(S.accMode==="range"){
+    const a=parseInt(document.getElementById('ba-from').value), b=parseInt(document.getElementById('ba-to').value);
+    if(isNaN(a)||isNaN(b)||a>b||a<0||b>999){ alert("請輸入有效區間(0–999,起 ≤ 迄)"); return; }
+    if(b-a+1>200){ alert("單次批次上限 200 個帳號"); return; }
+    for(let k=a;k<=b;k++) items.push({last3:pad3(k), name:""});
+  }
+  if(S.accMode==="paste"){
+    const txt=document.getElementById('ba-paste').value;
+    txt.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(line=>{
+      const nums=line.match(/\d+/g);
+      if(!nums) return;
+      const idn=nums[nums.length-1];
+      const nm=line.replace(/[A-Za-z]*\d+/g,"").replace(/[,，;\t]/g," ").trim();
+      items.push({last3:pad3(idn.slice(-3)), name:nm});
+    });
+    if(!items.length){ alert("未解析到任何學號,請確認格式(每行一筆,含學號)"); return; }
+  }
+  let made=0, dup=0;
+  S.lastBatch=[];
+  items.forEach(it=>{
+    const acct=y+dept+it.last3;
+    if(DB.accounts.some(x=>x.acct===acct)){ dup++; return; }
+    DB.accounts.push({name:it.name||("學員"+it.last3), noName:!it.name, roles:["學員"],
+      unit:deptName+"(入學 "+yr+")", status:"啟用", acct:acct, pwd:"init"});
+    if(!DB.students.some(s=>s.acct===acct))
+      DB.students.push({acct:acct, name:it.name||("學員"+it.last3), noName:!it.name, sid:"(未填)",
+        deptName:deptName, year:yr, grades:[], comps:null, xp:0});
+    S.lastBatch.push(acct); made++;
+  });
+  audit("平台管理員","批次建立學員帳號 "+made+" 個("+deptName+" · 入學 "+yr+";略過重複 "+dup+")");
+  closeModal();
+  flash("已建立 "+made+" 個帳號"+(dup?"(略過重複 "+dup+")":"")+" · 初始密碼=帳號");
+}
+function resetPwd(i){
+  const a=DB.accounts[i];
+  a.pwd="init";
+  audit("平台管理員","重設 "+a.name+"("+a.acct+")密碼為初始值(=帳號)");
+  flash("已重設 "+a.name+" 的密碼(=帳號)");
+}
+
+/* ---- v6:學員資料庫(名單匯入 / 成績匯入 / 能力推估) ---- */
+function importRoster(){
+  const yDef=document.getElementById('ba2-year').value.trim();
+  const dDef=document.getElementById('ba2-dept').value;
+  if(!/^\d{4}$/.test(yDef)){ alert("請輸入四位西元入學年(作為預設值)"); return; }
+  const txt=document.getElementById('ba2-paste').value;
+  let made=0, dup=0, bad=0;
+  S.lastBatch=[];
+  txt.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(line=>{
+    const toks=line.split(/[,，;\t ]+/).filter(Boolean);
+    let year=yDef, dept=dDef, sid="", nameParts=[];
+    toks.forEach(tk=>{
+      if(/^\d{4}$/.test(tk)&&parseInt(tk)>1990&&parseInt(tk)<2100){ year=tk; return; }
+      if(/^\d{2}$/.test(tk)&&DB.deptCodes[tk]){ dept=tk; return; }
+      if((tk.match(/\d/g)||[]).length>=3){ sid=tk; return; }
+      nameParts.push(tk);
+    });
+    if(!sid){ bad++; return; }
+    const digits=sid.match(/\d+/g).join("");
+    const acct=year.slice(-1)+dept+("00"+digits.slice(-3)).slice(-3);
+    if(DB.students.some(s=>s.acct===acct)){ dup++; return; }
+    const nm=nameParts.join("");
+    DB.students.push({acct:acct, name:nm||("學員"+acct.slice(-3)), noName:!nm, sid:sid,
+      deptName:DB.deptCodes[dept], year:year, grades:[], comps:null, xp:0});
+    if(!DB.accounts.some(a=>a.acct===acct))
+      DB.accounts.push({name:nm||("學員"+acct.slice(-3)), noName:!nm, roles:["學員"],
+        unit:DB.deptCodes[dept]+"(入學 "+year+")", status:"啟用", acct:acct, pwd:"init"});
+    S.lastBatch.push(acct); made++;
+  });
+  audit("平台管理員","匯入學員名單 "+made+" 筆(重複 "+dup+"、無法解析 "+bad+"),同步建立帳號");
+  closeModal();
+  flash("名單匯入完成:新增 "+made+" 位學員(重複 "+dup+"、無法解析 "+bad+")");
+}
+function courseAxis(c){
+  /* 依規則定義區的關鍵字表對應(可於管理者端調整) */
+  for(let i=0;i<6;i++){
+    const kws=DB.rules.kw[i].split(/[,，、\s]+/).filter(Boolean);
+    if(kws.some(k=>c.includes(k))) return i;
+  }
+  return 1; /* 無對應 → 預設 MK */
+}
+function recomputeStudent(st){
+  const R=DB.rules;
+  const ax=[[],[],[],[],[],[]];
+  st.grades.forEach(g=>ax[courseAxis(g.course)].push(g.score));
+  const def=[R.compBase,R.compBase,R.compBase,R.compBase,R.compBase,R.compBase];
+  st.comps=ax.map((a,i)=>a.length? Math.max(5,Math.min(95,Math.round(R.compBase+(a.reduce((x,y)=>x+y,0)/a.length-R.anchor)))) : def[i]);
+  const avg=st.grades.length? st.grades.reduce((x,g)=>x+g.score,0)/st.grades.length : 0;
+  st.xp=st.grades.length? Math.max(0,Math.round((avg-R.anchor)*R.xpK)) : 0;
+}
+function saveConv(){
+  const b=parseFloat(document.getElementById('cv-base').value),
+        a=parseFloat(document.getElementById('cv-anchor').value),
+        k=parseFloat(document.getElementById('cv-k').value);
+  if([b,a,k].some(isNaN)){ alert("請輸入有效數值"); return; }
+  DB.rules.compBase=b; DB.rules.anchor=a; DB.rules.xpK=k;
+  audit("平台管理員","更新成績換算參數(基準 "+b+" · 錨定 "+a+" · XP 係數 "+k+")");
+  flash("換算參數已更新,按「套用並重算」使其生效");
+}
+function saveKw(){
+  for(let i=0;i<6;i++){
+    const el=document.getElementById('kw-'+i);
+    if(el&&el.value.trim()) DB.rules.kw[i]=el.value.trim();
+  }
+  audit("平台管理員","更新課程 → 能力軸關鍵字對應表");
+  flash("對應表已更新,按「套用並重算」使其生效");
+}
+function saveActXp(){
+  DB.activities.forEach(a=>{
+    const el=document.getElementById('axp-'+a.id);
+    if(el){ const v=parseInt(el.value); if(!isNaN(v)&&v>0) a.xp=v; }
+  });
+  audit("平台管理員","更新各活動 XP 值");
+  flash("活動 XP 已更新");
+}
+function recalcAll(){
+  let n=0;
+  DB.students.forEach(st=>{ if(st.grades.length){ recomputeStudent(st); n++; } });
+  audit("平台管理員","依新規則重算 "+n+" 位學員的初始能力與 XP");
+  flash("已重算 "+n+" 位有成績學員;學員下次進入儀表板即見新數值");
+}
+function importGrades(){
+  const txt=document.getElementById('gr-paste').value;
+  let made=0, miss=0;
+  const touched=new Set();
+  txt.split(/\n/).map(s=>s.trim()).filter(Boolean).forEach(line=>{
+    const toks=line.split(/[,，;\t]+/).map(t=>t.trim()).filter(Boolean);
+    if(toks.length<3){ miss++; return; }
+    const key=toks[0], course=toks[1], score=parseFloat(toks[2]);
+    if(isNaN(score)){ miss++; return; }
+    const st=DB.students.find(s=>s.acct===key||s.sid===key||(s.sid&&s.sid.endsWith(key)));
+    if(!st){ miss++; return; }
+    st.grades.push({course:course, score:score});
+    touched.add(st.acct); made++;
+  });
+  touched.forEach(a=>recomputeStudent(DB.students.find(s=>s.acct===a)));
+  audit("平台管理員","匯入成績 "+made+" 筆("+touched.size+" 位學員),重新推估初始能力與 XP");
+  closeModal();
+  flash("成績匯入完成:"+made+" 筆,"+touched.size+" 位學員已更新初始能力"+(miss?"(無法對應 "+miss+" 筆)":""));
+}
+function saveAcc(i){
+  const a=DB.accounts[i];
+  const u=document.getElementById('ac-unit'), st=document.getElementById('ac-status');
+  const roles=["學員","教師","導師"].filter(r=>document.getElementById('ac-r-'+r).checked);
+  if(!roles.length){ alert("請至少勾選一個角色"); return; }
+  a.roles=roles; a.unit=u.value.trim()||a.unit; a.status=st.value;
+  audit("平台管理員","編輯帳號 "+a.name+"(角色:"+roles.join("/")+" · 狀態:"+st.value+")");
+  closeModal(); flash("已更新 "+a.name);
+}
+function pairCandidates(){
+  const s=new Set();
+  DB.accounts.filter(a=>a.roles.includes("學員")).forEach(a=>s.add(a.name));
+  DB.pairs.forEach(p=>p.mentees.forEach(m=>s.add(m)));
+  return [...s];
+}
+function savePair(i){
+  const p=DB.pairs[i];
+  const names=pairCandidates();
+  p.mentees=names.filter((n,k)=>{ const el=document.getElementById('pr-'+k); return el&&el.checked; });
+  audit("平台管理員","調整 "+p.mentor+" 的導生配對("+p.mentees.length+" 位)");
+  closeModal(); flash("配對已更新");
+}
+function importCaseGo(){
+  const b=document.getElementById('ic-brief'), d=document.getElementById('ic-dx'),
+        dept=document.getElementById('ic-dept'), df=document.getElementById('ic-diff');
+  if(!b.value.trim()||!d.value.trim()){ alert("請填寫個案摘要與診斷"); return; }
+  const id="c"+("0"+(DB.cases.length+1)).slice(-2);
+  DB.cases.push({id:id, brief:b.value.trim(), dx:d.value.trim(), dept:dept.value, diff:parseInt(df.value), comp:20, status:"建構中", ver:"v0.1", issue:null});
+  audit("平台管理員","匯入新個案 "+id+"("+d.value.trim()+"),進入去識別化建構流程");
+  S.caseView=id; closeModal(); flash("個案已建立,完成資料建構後可送審");
+}
+function addAvatar(){
+  const n=document.getElementById('av-name'), inf=document.getElementById('av-info'),
+        lg=document.getElementById('av-lang'), ps=document.getElementById('av-persona');
+  if(!n.value.trim()){ alert("請輸入 Avatar 名稱"); return; }
+  DB.avatars.push({id:"v"+(DB.avatars.length+1), name:n.value.trim(), info:inf.value.trim()||"—",
+    lang:lg.value.trim()||"國語", persona:ps.value.trim()||"—", status:"測試中",
+    reply:"您好,醫師…我今天覺得不太舒服,想請您幫我看看。"});
+  audit("平台管理員","建立新 Avatar「"+n.value.trim()+"」(測試中)");
+  closeModal(); flash("Avatar 已建立,請於沙盒測試後上線");
+}
+
+/* ---- v4:彈窗內容 ---- */
+function modalHtml(){
+  const t=S.modal.t, a=S.modal.a;
+  let title="", sub="", body="", foot="";
+  if(t==='newAct'){
+    title="建立課程活動"; sub="從已審核教案建立;儲存後出現在活動列表與儀表板";
+    body=`
+      <div class="f-row"><label>選擇教案(僅列已審核通過)</label>
+        <select id="na-case">${DB.cases.filter(c=>c.status==="已通過").map(c=>`<option value="${c.id}">${c.dx} — ${c.brief}</option>`).join("")}</select></div>
+      <div class="f-row"><label>活動模式</label>
+        <select id="na-mode"><option>自我學習</option><option>課堂教學</option><option>多人協作</option></select></div>
+      <div class="f-row"><label>開放對象</label><input id="na-who" placeholder="例:醫四 B 班 · 44 人"></div>
+      <div class="f-row"><label>排程</label><input id="na-when" placeholder="例:10/03(五)10:10,或「常駐開放」"></div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="createActivity()">建立</button>`;
+  }
+  if(t==='newAcc'){
+    title="建立學員帳號(含初始密碼)";
+    sub="帳號 6 碼=入學西元年末碼(1)+學系代碼(2)+學號末三碼(3);初始密碼=帳號,首次登入強制變更。教職員帳號規則另訂。";
+    const modes=[["single","單筆建立"],["range","區間批次"],["paste","貼上名單"]];
+    body=`
+      <div class="f-row"><label>建立方式</label>
+        <div class="toolgrid" style="margin-top:2px;">${modes.map(m=>`<span class="toolchip ${S.accMode===m[0]?'on':''}" onclick="setAccMode('${m[0]}')">${S.accMode===m[0]?'✓ ':''}${m[1]}</span>`).join("")}</div></div>
+      <div class="grid2" style="gap:10px;">
+        <div class="f-row"><label>入學西元年</label><input id="ba-year" value="${S.accY}" placeholder="2026"></div>
+        <div class="f-row"><label>學系(代碼)</label>
+          <select id="ba-dept">${Object.entries(DB.deptCodes).map(([c,n])=>`<option value="${c}" ${S.accD===c?"selected":""}>${c} · ${n}</option>`).join("")}</select></div>
+      </div>
+      ${S.accMode==="single"?`
+      <div class="grid2" style="gap:10px;">
+        <div class="f-row"><label>學號末三碼</label><input id="ba-last3" placeholder="例:042"></div>
+        <div class="f-row"><label>姓名(選填)</label><input id="ba-name" placeholder="例:黃小明"></div>
+      </div>`:""}
+      ${S.accMode==="range"?`
+      <div class="grid2" style="gap:10px;">
+        <div class="f-row"><label>末三碼 · 起</label><input id="ba-from" placeholder="001"></div>
+        <div class="f-row"><label>末三碼 · 迄</label><input id="ba-to" placeholder="050"></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--faint);margin-top:8px;">例:2026 入學 · 醫學系 · 001–050 → 一次建立 601001~601050 共 50 個帳號(單次上限 200)。</p>`:""}
+      ${S.accMode==="paste"?`
+      <div class="f-row"><label>名單(每行一筆;可含姓名,自動擷取學號末三碼)</label>
+        <textarea id="ba-paste" style="height:110px;" placeholder="黃小明 B11501042&#10;B11501043&#10;陳大文,B11501044"></textarea></div>`:""}
+      <div class="okbar" style="margin-top:14px;">範例:2026 年入學(→ 6)+ 醫學系(01)+ 學號末三碼 042 → 帳號 <b>601042</b> · 初始密碼 <b>601042</b></div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="createAccounts()">建立帳號</button>`;
+  }
+  if(t==='editAcc'){
+    const ac=DB.accounts[a];
+    title="編輯帳號 · "+ac.name; sub="角色指派與狀態";
+    body=`
+      <div class="f-row"><label>單位</label><input id="ac-unit" value="${ac.unit}"></div>
+      <div class="f-row"><label>角色(可複選)</label>
+        ${["學員","教師","導師"].map(r=>`<label class="ck"><input type="checkbox" id="ac-r-${r}" ${ac.roles.includes(r)?"checked":""}>${r}</label>`).join("")}</div>
+      <div class="f-row"><label>狀態</label><select id="ac-status"><option ${ac.status==="啟用"?"selected":""}>啟用</option><option ${ac.status==="停用"?"selected":""}>停用</option></select></div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="saveAcc(${a})">儲存</button>`;
+  }
+  if(t==='pair'){
+    const p=DB.pairs[a]; const cand=pairCandidates();
+    title="調整配對 · "+p.mentor; sub="勾選要配對給此導師的導生";
+    body=`<div class="f-row"><label>導生名單</label>${cand.map((nm,k)=>`<label class="ck"><input type="checkbox" id="pr-${k}" ${p.mentees.includes(nm)?"checked":""}>${nm}</label>`).join("")}</div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="savePair(${a})">儲存配對</button>`;
+  }
+  if(t==='importCase'){
+    title="匯入新個案"; sub="進入去識別化建構流程;完成後送交臨床審查";
+    body=`
+      <div class="f-row"><label>個案摘要</label><input id="ic-brief" placeholder="例:52 歲男性,突發劇烈頭痛"></div>
+      <div class="f-row"><label>診斷</label><input id="ic-dx" placeholder="例:蜘蛛膜下腔出血"></div>
+      <div class="f-row"><label>科別</label><select id="ic-dept"><option>內科</option><option>急診</option><option>外科</option><option>急救</option><option>通用</option></select></div>
+      <div class="f-row"><label>難度</label><select id="ic-diff"><option>1</option><option>2</option><option selected>3</option><option>4</option></select></div>
+      <div class="warnbar" style="margin-top:14px;">提醒:去識別化範圍涵蓋病人與醫療人員資料(姓名、病歷號、病歷中出現的人員代號)。</div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="importCaseGo()">建立個案</button>`;
+  }
+  if(t==='newAva'){
+    title="新增 Avatar"; sub="建立虛擬病人人設;先於沙盒測試再上線";
+    body=`
+      <div class="f-row"><label>名稱</label><input id="av-name" placeholder="例:阿玉嬸"></div>
+      <div class="f-row"><label>基本資料</label><input id="av-info" placeholder="例:61 歲女 · 家庭主婦"></div>
+      <div class="f-row"><label>語言</label><input id="av-lang" placeholder="例:台語為主"></div>
+      <div class="f-row"><label>個性與對話風格</label><textarea id="av-persona" placeholder="例:客氣但擔心花錢,傾向低報症狀…"></textarea></div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="addAvatar()">建立</button>`;
+  }
+  if(t==='importRoster'){
+    title="匯入學員名單"; sub="每行一位;自動產生六碼帳號(初始密碼=帳號)並寫入學員資料庫,登入即連動顯示姓名";
+    body=`
+      <div class="grid2" style="gap:10px;">
+        <div class="f-row"><label>預設入學年(行內可覆寫)</label><input id="ba2-year" value="${S.accY}"></div>
+        <div class="f-row"><label>預設學系(行內可覆寫)</label><select id="ba2-dept">${Object.entries(DB.deptCodes).map(([c,n])=>`<option value="${c}" ${S.accD===c?"selected":""}>${c} · ${n}</option>`).join("")}</select></div>
+      </div>
+      <div class="f-row"><label>名單(格式:姓名 學號 [學系代碼] [入學年],分隔可用空格或逗號)</label>
+        <textarea id="ba2-paste" style="height:120px;" placeholder="黃小明 B11501042&#10;陳大文,B11501043,01,2026&#10;吳美美 N11504021 04"></textarea></div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="importRoster()">匯入名單</button>`;
+  }
+  if(t==='importGrades'){
+    title="匯入學員成績"; sub="作為初始能力推估與活動推薦的依據;格式:帳號或學號,課程名稱,分數";
+    body=`
+      <div class="f-row"><label>成績資料(每行一筆)</label>
+        <textarea id="gr-paste" style="height:120px;" placeholder="601042,內科學,88&#10;601042,臨床技能,75&#10;B11501043,醫病溝通,82"></textarea></div>
+      <div class="okbar" style="margin-top:12px;">課程 → 能力軸對應(正式版可設定):臨床技能/OSCE → PC;內外科學 → MK;實證/研究 → PBLI;溝通/醫病 → ICS;倫理/專業 → PROF;公衛/品質 → SBP</div>`;
+    foot=`<button class="mini-btn" onclick="closeModal()">取消</button><button class="btn sm" onclick="importGrades()">匯入成績</button>`;
+  }
+  return `<div class="modal-bg" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <h3>${title}</h3><div class="m-s">${sub}</div>${body}<div class="m-foot">${foot}</div></div></div>`;
+}
+
+/* ---- v7:XP 與能力規則定義頁 ---- */
+function pageARules(){
+  const R=DB.rules;
+  return shellFor("admin","/admin/rules", `
+    <div class="crumb">管理者介面 ADMIN</div>
+    <div class="pg-t">XP 與能力規則定義</div>
+    <div class="pg-s">所有計算規則集中於此:調整後按「套用並重算」,初始能力、等級與推薦即依新規則運作。正式版的規則變更需教學委員會核定並留存版本。</div>
+
+    <div class="grid2 mt2">
+      <div class="cardx"><h3>① 等級門檻(累積 XP)</h3>
+        <table class="tbl">
+          <tr><th>等級</th><th>累積 XP 門檻</th></tr>
+          ${DB.xpRules.map(r=>`<tr><td><b>Lv.${r.lv}</b></td><td><input class="xp-in" id="xp-${r.lv}" value="${r.need}"></td></tr>`).join("")}
+        </table>
+        <div class="toolbar"><button class="btn sm" onclick="saveXp()">儲存門檻</button></div>
+      </div>
+      <div class="cardx"><h3>② 成績 → 初始能力 / XP 換算</h3>
+        <p style="font-size:12.5px;color:var(--sub);line-height:1.9;">能力值 = <b>基準值</b> + (該軸課程平均 − <b>錨定分數</b>)<br>初始 XP = (總平均 − 錨定分數) × <b>XP 係數</b></p>
+        <div class="grid2" style="gap:10px;margin-top:10px;">
+          <div class="f-row"><label>基準值(目前 ${R.compBase})</label><input class="xp-in" id="cv-base" value="${R.compBase}" style="width:100%"></div>
+          <div class="f-row"><label>錨定分數(目前 ${R.anchor})</label><input class="xp-in" id="cv-anchor" value="${R.anchor}" style="width:100%"></div>
+        </div>
+        <div class="f-row"><label>XP 係數(目前 ${R.xpK})</label><input class="xp-in" id="cv-k" value="${R.xpK}" style="width:100%"></div>
+        <div class="toolbar"><button class="btn sm" onclick="saveConv()">儲存參數</button></div>
+      </div>
+    </div>
+
+    <div class="cardx mt"><h3>③ 課程 → 能力軸對應(關鍵字,逗號分隔;由上而下優先比對)</h3>
+      ${DB.user.competencies.map((c,i)=>`<div class="f-row" style="display:flex;gap:12px;align-items:center;">
+        <label style="width:200px;flex-shrink:0;margin:0;">${c.key} ${c.name}</label>
+        <input id="kw-${i}" value="${R.kw[i]}"></div>`).join("")}
+      <p style="font-size:11.5px;color:var(--faint);margin-top:8px;">課程名稱含任一關鍵字即對應該軸;皆不符 → 預設 MK 醫學知識。</p>
+      <div class="toolbar"><button class="btn sm" onclick="saveKw()">儲存對應表</button></div>
+    </div>
+
+    <div class="grid2 mt">
+      <div class="cardx"><h3>④ 各活動 XP 值</h3>
+        <table class="tbl">
+          <tr><th>活動</th><th>XP</th></tr>
+          ${DB.activities.map(a=>`<tr><td><b>${a.title}</b> <span style="color:var(--faint);font-size:11px">${a.dx}</span></td>
+            <td><input class="xp-in" id="axp-${a.id}" value="${a.xp}"></td></tr>`).join("")}
+        </table>
+        <div class="toolbar"><button class="btn sm" onclick="saveActXp()">儲存活動 XP</button></div>
+      </div>
+      <div>
+        <div class="cardx"><h3>⑤ 排行榜計分設定(點擊切換)</h3>
+          <div class="toolgrid">
+            <span class="toolchip ${S.boardCfg.effort?'on':''}" onclick="togCfg('effort')">${S.boardCfg.effort?'✓ ':''}努力型指標(活動量/連續天數)</span>
+            <span class="toolchip ${S.boardCfg.anon?'on':''}" onclick="togCfg('anon')">${S.boardCfg.anon?'✓ ':''}允許匿名顯示</span>
+            <span class="toolchip ${S.boardCfg.quit?'on':''}" onclick="togCfg('quit')">${S.boardCfg.quit?'✓ ':''}允許退出排行榜</span>
+            <span class="toolchip ${S.boardCfg.pure?'on':''}" onclick="togCfg('pure')">${S.boardCfg.pure?'✓ ':''}純分數排名</span>
+          </div>
+          ${S.boardCfg.pure?`<div class="warnbar">⚠ 純分數排名已啟用——提醒:公開能力排名可能挫折後段學員,建議教學委員會討論後再上線。</div>`:""}
+        </div>
+        <div class="cardx mt"><h3>套用規則</h3>
+          <p style="font-size:12.5px;color:var(--sub);line-height:1.8;">將 ①②③ 的變更套用到既有學員資料(重算初始能力與 XP);所有變更寫入稽核紀錄。</p>
+          <div class="toolbar"><button class="btn sm" onclick="recalcAll()">⟳ 套用並重算所有學員</button></div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+/* ---- v6:學員資料庫頁 ---- */
+function pageAStudents(){
+  const v=DB.students.find(s=>s.acct===S.stuView);
+  const graded=DB.students.filter(s=>s.grades.length).length;
+  return shellFor("admin","/admin/students", `
+    <div class="crumb">管理者介面 ADMIN</div>
+    <div class="pg-t">學員資料庫</div>
+    <div class="pg-s">名單與成績的單一來源:帳號建立、登入顯示、初始能力推估與活動推薦皆由此連動。</div>
+    <div class="stat-row">
+      <div class="stat"><b>${DB.students.length}</b><span>學員資料</span></div>
+      <div class="stat"><b>${graded}</b><span>已匯入成績</span></div>
+      <div class="stat"><b>${DB.students.filter(s=>DB.accounts.some(a=>a.acct===s.acct)).length}</b><span>已連動帳號</span></div>
+      <div class="stat"><b style="color:var(--gold)">${DB.students.filter(s=>s.noName).length}</b><span>姓名待補</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn sm" onclick="openModal('importRoster')">⬆ 匯入學員名單</button>
+      <button class="mini-btn" onclick="openModal('importGrades')">⬆ 匯入成績</button>
+    </div>
+    <div class="cardx mt"><h3>學員列表(點列看詳情)</h3>
+      <table class="tbl">
+        <tr><th>帳號</th><th>姓名</th><th>學系</th><th>入學年</th><th>學號</th><th>成績</th><th>初始能力</th></tr>
+        ${DB.students.map(s=>`<tr class="rowlink ${S.lastBatch.includes(s.acct)?'hl':''}" onclick="S.stuView='${s.acct}';render()">
+          <td style="font-family:Georgia,serif"><b>${s.acct}</b></td>
+          <td><b>${s.name}</b>${s.noName?' <span style="font-size:10px;color:var(--faint)">(待補)</span>':''}</td>
+          <td>${s.deptName}</td><td>${s.year}</td><td>${s.sid}</td>
+          <td>${s.grades.length?s.grades.length+" 筆":"—"}</td>
+          <td>${s.comps?'<span class="tagx teal">已推估</span>':'<span class="tagx gray">預設</span>'}</td>
+        </tr>`).join("")}
+      </table>
+    </div>
+    ${v?`<div class="cardx mt"><h3>學員詳情 · ${v.name}(${v.acct})</h3>
+      <div class="grid2">
+        <div>
+          <p style="font-size:12px;color:var(--faint);letter-spacing:1px;margin-bottom:4px;">已匯入成績</p>
+          ${v.grades.length?`<table class="tbl"><tr><th>課程</th><th>分數</th><th>對應能力軸</th></tr>
+            ${v.grades.map(g=>`<tr><td>${g.course}</td><td>${g.score}</td><td>${DB.user.competencies[courseAxis(g.course)].key} ${DB.user.competencies[courseAxis(g.course)].name}</td></tr>`).join("")}</table>`
+          :'<p style="font-size:13px;color:var(--faint)">尚未匯入成績,能力以預設值 30 起算。</p>'}
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--faint);letter-spacing:1px;margin-bottom:4px;">推估初始能力與 XP</p>
+          ${DB.user.competencies.map((c,i)=>barRow(c.key,(v.comps||[30,30,30,30,30,30])[i],"var(--teal)")).join("")}
+          <p style="font-size:12.5px;color:var(--sub);margin-top:10px;">初始 XP:<b style="color:var(--teal)">${v.xp||0}</b>(Lv.${levelOf(v.xp||0).lv})</p>
+          <div class="okbar" style="margin-top:10px;">此學員以帳號 <b>${v.acct}</b> 登入即可看到自己的姓名、能力雷達與依短板推薦的活動——登出後在登入頁輸入帳號試試。</div>
+        </div>
+      </div>
+    </div>`:""}
+  `);
+}
+
+/* ---- v4:活動監控頁 ---- */
+function pageTActivity(){
+  const t=DB.teacherActs[S.tact]||DB.teacherActs[0];
+  const stages=["問診","身體診察","鑑別診斷","檢查判讀","處置","回報","總結"];
+  const isClass=t.mode.includes("課堂");
+  const ppl=t.who.match(/\d+/);
+  return shellFor("teacher","/teacher/dash", `
+    <span class="back" onclick="go('/teacher/dash')">← 回教學儀表板</span>
+    <div class="d-head"><div class="pg-t">活動監控 · ${t.title}</div>${modeTag(t.mode)}<span class="tagx ${t.status==='進行中'?'gold':'teal'}">${t.status}</span></div>
+    <div class="pg-s">${t.who} · ${t.sched}</div>
+    <div class="stat-row">
+      <div class="stat"><b>${ppl?ppl[0]:"—"}</b><span>參與人數</span></div>
+      <div class="stat"><b>${t.done}%</b><span>完成率</span></div>
+      <div class="stat"><b style="color:var(--gold)">${t.stuck}</b><span>主要卡關點</span></div>
+      <div class="stat"><b>${isClass?"6":"—"}</b><span>分組數</span></div>
+    </div>
+    ${isClass?`
+    <div class="cardx mt"><h3>各組即時進度(${stages.length} 階段)</h3>
+      ${DB.groups.map(g=>`<div class="grp-row">
+        <b>${g.g}</b>
+        <div class="steps">${stages.map((s,i)=>`<i class="${i<g.stage?'done':(i===g.stage?'now':'')}" title="${s}"></i>`).join("")}</div>
+        <span class="st-l" style="color:${g.stuck?'var(--red)':'var(--faint)'}">${g.note||stages[g.stage]}</span>
+      </div>`).join("")}
+      <div class="toolbar">
+        <button class="mini-btn ${S.classCtl==='暫停 · 共同討論'?'on':''}" onclick="setCtl('暫停 · 共同討論');flash('已暫停全班,進入共同討論(學員端同步顯示)')">⏸ 暫停 · 共同討論</button>
+        <button class="mini-btn" onclick="setCtl('進行中');flash('已恢復活動')">▶ 繼續</button>
+        <button class="mini-btn" onclick="flash('已向全班廣播提示訊息')">📢 廣播提示</button>
+      </div>
+    </div>
+    <div class="warnbar">🤖 AI 洞察:第 3、5 組進度落後,且全班 46% 卡在鑑別診斷——建議此刻暫停,做 10 分鐘共同討論(各組輪流說出目前的鑑別清單)。</div>`
+    :`
+    <div class="cardx mt"><h3>學員進度</h3>
+      ${DB.learnersData.map(l=>`<div class="grp-row">
+        <b style="width:80px">${l.n}</b>
+        <div class="steps">${[0,1,2,3,4,5,6].map(i=>`<i class="${i<Math.min(7,l.done)?'done':''}"></i>`).join("")}</div>
+        <span class="st-l">完成 ${l.done} 次 · 平均 ${l.avg} 分</span>
+      </div>`).join("")}
+    </div>`}
+  `);
+}
+
+/* ---- v4:學員個人報表頁 ---- */
+function pageTLearner(){
+  const n=S.viewLearner;
+  const p=DB.learnerProfiles[n]||DB.learnerProfiles["林同學"];
+  const ld=DB.learnersData.find(x=>x.n===n)||{done:0,avg:"—",weak:"—"};
+  const comps=DB.user.competencies.map((c,i)=>({key:c.key,name:c.name,val:p.comps[i]}));
+  return shellFor("teacher","/teacher/data", `
+    <span class="back" onclick="go('/teacher/data')">← 回學員學習數據</span>
+    <div class="d-head"><div class="pg-t">學員報表 · ${n}</div><span class="tagx gray">完成 ${ld.done} 活動 · 平均 ${ld.avg} 分</span></div>
+    <div class="grid2 mt2">
+      <div class="cardx"><h3>能力雷達(ACGME)</h3>
+        <div class="radar-wrap">${radarSVG(comps)}
+        <div class="radar-leg">${comps.map(c=>`<div><i></i>${c.key}　${c.name}　<b style="color:var(--txt)">${c.val}</b></div>`).join("")}</div></div>
+      </div>
+      <div class="cardx"><h3>累積 XP 趨勢(近 8 週)</h3>${lineSVG(p.trend)}
+        <p style="font-size:12.5px;color:var(--sub);margin-top:6px;">能力短板:<b style="color:var(--gold)">${ld.weak}</b></p>
+      </div>
+    </div>
+    <div class="cardx mt"><h3>建議行動 <span class="tagx blue">AI</span></h3>
+      <ul class="obj">
+        <li>${p.comps[3]<55?"溝通面向(ICS)偏弱:優先指派含病情解釋的活動,並於課堂給予示範回饋":"整體表現穩定:可指派更高難度活動維持挑戰"}</li>
+        <li>${ld.done<4?"活動量偏低:建議導師介入了解學習節奏":"活動量穩定:維持目前推薦策略"}</li>
+      </ul>
+      <div class="toolbar">
+        <button class="mini-btn" onclick="scoreLearner('${n}');go('/teacher/data')">Rubric 評分</button>
+        <button class="mini-btn" onclick="flash('已通知 ${n} 的導師(王導師)')">通知導師</button>
+        <button class="mini-btn" onclick="flash('原型示意:匯出個人報表 PDF')">匯出報表</button>
+      </div>
     </div>
   `);
 }
@@ -1525,9 +2267,10 @@ function render(){
     "/learner/board":pageBoard, "/learner/social":pageSocial, "/learner/settings":pageSettings,
     "/teacher/dash":pageTDash, "/teacher/editor":pageTEditor, "/teacher/courses":pageTCourses,
     "/teacher/data":pageTData, "/teacher/library":pageTLibrary, "/teacher/review":pageTReview,
+    "/teacher/activity":pageTActivity, "/teacher/learner":pageTLearner,
     "/mentor/overview":pageMOverview, "/mentor/mentee":pageMMentee,
     "/mentor/recommend":pageMRecommend, "/mentor/talk":pageMTalk,
-    "/admin/accounts":pageAdminAccounts, "/admin/patients":pageAPatients,
+    "/admin/accounts":pageAdminAccounts, "/admin/students":pageAStudents, "/admin/rules":pageARules, "/admin/patients":pageAPatients,
     "/admin/avatar":pageAAvatar, "/admin/system":pageASystem
   };
   let out;
@@ -1535,7 +2278,7 @@ function render(){
   else if(h.startsWith("/learner/act/")) out=pageDetail(h.split("/")[3]);
   else if(h.startsWith("/learner/run/")) out=pageRun(h.split("/")[3]);
   else out=pageLanding();
-  app.innerHTML=out;
+  app.innerHTML=out+(S.modal?modalHtml():"")+(S.flash?'<div class="flash">'+S.flash+'</div>':"");
   const lg=document.getElementById('clog'); if(lg) lg.scrollTop=lg.scrollHeight;
   window.scrollTo(0,0);
 }
