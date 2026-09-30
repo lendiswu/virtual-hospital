@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虛擬醫院平台 網站地圖 Beta 0.1 · 功能驗收版(嚴格標準)</title>
+<style>
+  :root{
+    --bg:#0E1726; --card:#141F35; --card2:#1B2A47; --line:#28395C;
+    --txt:#E8EDF5; --sub:#9FB0C9; --faint:#6B7C99;
+    --learner:#2EC4B6; --teacher:#E9B44C; --mentor:#8FBF6F; --admin:#A99BE8;
+    --ai:#4EA3F2; --entry:#5BC8E8; --red:#E86A6A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--txt); font-family:"PingFang TC","Microsoft JhengHei",sans-serif; padding:36px 28px 80px;}
+  .wrap{max-width:1560px; margin:0 auto;}
+  h1{font-size:26px; letter-spacing:2px; font-weight:700;}
+  .sub{color:var(--sub); font-size:13.5px; margin-top:6px; letter-spacing:.5px; line-height:1.8;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; font-size:12.5px; color:var(--sub); align-items:center;}
+  .st{display:inline-block; font-size:10.5px; padding:1.5px 8px; border-radius:9px; font-weight:600; letter-spacing:.5px; vertical-align:1px; white-space:nowrap;}
+  .st.ok{background:rgba(46,196,182,.15); color:var(--learner); border:1px solid rgba(46,196,182,.45);}
+  .st.half{background:rgba(233,180,76,.13); color:var(--teacher); border:1px solid rgba(233,180,76,.4);}
+  .st.no{background:rgba(232,106,106,.12); color:var(--red); border:1px solid rgba(232,106,106,.4);}
+  .hint{color:var(--faint); font-size:12px; margin-left:auto;}
+  .defbox{margin-top:14px; border:1px solid var(--line); border-left:3px solid var(--learner); border-radius:0 10px 10px 0; background:var(--card); padding:12px 16px; font-size:12.5px; color:var(--sub); line-height:1.9;}
+  .defbox b{color:var(--txt);}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;}
+  @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:13px 16px;}
+  .stat b{font-size:24px; font-family:Georgia,serif;}
+  .stat span{display:block; font-size:11.5px; color:var(--faint); letter-spacing:1px; margin-top:2px;}
+
+  .sec{margin-top:36px;}
+  .sec-t{font-size:15px; font-weight:700; letter-spacing:3px; color:var(--sub); display:flex; align-items:center; gap:12px;}
+  .sec-t::after{content:""; flex:1; height:1px; background:var(--line);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px;}
+  @media(max-width:1000px){.cols{grid-template-columns:1fr;}}
+  .col{border-radius:12px; background:rgba(255,255,255,.015); border:1px solid var(--line); padding:14px 12px 16px;}
+  .col-h{display:flex; align-items:baseline; gap:8px; padding:2px 6px 12px;}
+  .col-h .name{font-size:17px; font-weight:700; letter-spacing:2px;}
+  .col-h .en{font-size:11px; color:var(--faint); letter-spacing:1px;}
+  .col.learner{border-top:3px solid var(--learner);} .col.learner .name{color:var(--learner);}
+  .col.teacher{border-top:3px solid var(--teacher);} .col.teacher .name{color:var(--teacher);}
+  .col.mentor{border-top:3px solid var(--mentor);} .col.mentor .name{color:var(--mentor);}
+  .col.admin{border-top:3px solid var(--admin);} .col.admin .name{color:var(--admin);}
+  .col.entry{border-top:3px solid var(--entry);} .col.entry .name{color:var(--entry);}
+
+  .page{background:var(--card); border:1px solid var(--line); border-radius:9px; margin-top:10px; overflow:hidden;}
+  .page-h{display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer; user-select:none; flex-wrap:wrap;}
+  .page-h:hover{background:var(--card2);}
+  .page-h .pt{font-size:13.5px; font-weight:700; letter-spacing:.5px; flex:1;}
+  .page-h .tw{font-size:12px; color:var(--faint); transition:transform .18s;}
+  .page.open .tw{transform:rotate(90deg);}
+  .page-b{display:none; padding:2px 14px 12px; border-top:1px dashed var(--line);}
+  .page.open .page-b{display:block;}
+  ul{list-style:none;}
+  .page-b li{font-size:12.5px; color:var(--sub); padding:5px 0 5px 14px; position:relative; line-height:1.65;}
+  .page-b li::before{content:""; position:absolute; left:0; top:12px; width:5px; height:5px; border-radius:50%; background:var(--faint);}
+  .page-b li b{color:var(--txt); font-weight:600;}
+  .note{margin-top:16px; border:1px dashed var(--line); border-radius:12px; padding:16px 20px; font-size:12.5px; color:var(--sub); line-height:1.9;}
+  .foot{margin-top:34px; color:var(--faint); font-size:12px; line-height:1.9; border-top:1px solid var(--line); padding-top:14px;}
+  .ctrl{margin-top:14px;}
+  .btn{background:var(--card2); color:var(--sub); border:1px solid var(--line); border-radius:7px; font-size:12px; padding:6px 14px; cursor:pointer; margin-right:8px;}
+  .btn:hover{color:var(--txt);}
+
+  /* 字級調整 */
+  .fz-ctl{position:fixed; top:10px; right:12px; z-index:500; display:flex; gap:4px; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:16px; padding:4px 8px;}
+  .fz-ctl button{background:none; border:none; color:var(--sub); font-size:15px; cursor:pointer; padding:2px 8px; font-family:inherit;}
+  .fz-ctl button:hover{color:var(--txt);}
+  .fz-ctl #fz-val{font-size:11.5px; color:var(--faint); min-width:38px; text-align:center; cursor:pointer;}
+  @media print{.fz-ctl{display:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>虛擬醫院平台 <span style="color:var(--faint);font-weight:400;">|</span> 網站地圖 <span style="color:var(--faint);font-size:15px;">Beta 0.1 · 功能驗收版(嚴格標準)</span></h1>
+  <div class="sub">對應平台 Beta 0.1(2026/09/29)。本版採<b style="color:var(--txt)">嚴格驗收標準</b>重新分類——「可以點但不完整」一律列為未完成,避免高估進度。</div>
+
+  <div class="defbox">
+    <b>✅ 完成的認定標準(四項全符合才算):</b>(1)必要的輸入驗證存在;(2)操作結果正確寫入資料層;(3)所有應同步的頁面/介面一致反映;(4)功能核心無固定假裝內容。<br>
+    <b>🔶 未完成:</b>介面存在、可以點擊,但缺驗證、缺連動、內容為固定示範、或按下僅提示——一律不算完成。<br>
+    <b>⬜ 待建構:</b>尚無介面。<br>
+    全域前提:純前端原型,資料存於瀏覽器記憶體,重新整理即重置;此為架構限制,不影響上述分類。
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="c-ok" style="color:var(--learner)">–</b><span>完成(嚴格標準)</span></div>
+    <div class="stat"><b id="c-half" style="color:var(--teacher)">–</b><span>未完成(有介面)</span></div>
+    <div class="stat"><b id="c-no" style="color:var(--red)">–</b><span>待建構</span></div>
+    <div class="stat"><b>26</b><span>頁面路由</span></div>
+  </div>
+  <div class="ctrl">
+    <button class="btn" onclick="toggleAll(true)">全部展開</button>
+    <button class="btn" onclick="toggleAll(false)">全部收合</button>
+  </div>
+
+  <!-- ═══ 入口 ═══ -->
+  <div class="sec">
+    <div class="sec-t">入口層　ENTRY</div>
+    <div class="cols">
+      <div class="col entry">
+        <div class="col-h"><span class="name">入口與登入</span><span class="en">ENTRY / LOGIN</span></div>
+        <div class="page open">
+          <div class="page-h"><span class="pt">形象首頁+登入頁</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 頁面導覽:首頁→登入→依身分分流;北醫形象視覺(內嵌圖檔)正常顯示</li>
+            <li><span class="st ok">✅</span> 示範身分快速進入按鈕(4 個;原型導覽用途,行為正確)</li>
+            <li><span class="st half">🔶</span> <b>帳號登入</b>:可輸入六碼帳號連動學員資料,但<b>密碼完全不驗證、停用帳號未阻擋登入、無首次登入強制改密</b>——不能視為完成的登入功能</li>
+            <li><span class="st half">🔶</span> 首頁公告為固定文字,無公告管理來源</li>
+          </ul></div>
+        </div>
+        <div class="page open">
+          <div class="page-h"><span class="pt">角色分流與多重身分</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 依身分導向四介面;各介面選單、logo 回首頁、頁內返回導航皆正確</li>
+            <li><span class="st half">🔶</span> 多重角色切換(王導師):切換鈕可用,但<b>資料不隨身分過濾</b>(教師身分看到的是陳老師的示範資料)</li>
+          </ul></div>
+        </div>
+      </div>
+
+  <!-- ═══ 學員 ═══ -->
+      <div class="col learner">
+        <div class="col-h"><span class="name">學員介面</span><span class="en">LEARNER</span></div>
+        <div class="page">
+          <div class="page-h"><span class="pt">儀表板</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 個人資料顯示:姓名/職類用語(醫師力·護理力·藥師力)/等級/XP/六軸雷達——正確讀取登入者資料(含匯入學員的推估值)</li>
+            <li><span class="st ok">✅</span> 升級預告(依等級真計算)、進行中活動進度(與執行頁真同步)、「繼續」導航</li>
+            <li><span class="st ok">✅</span> 匯入學員的推薦活動:依最弱能力軸即時計算+附理由</li>
+            <li><span class="st half">🔶</span> 示範帳號(林同學)的推薦、通知摘要、週統計為固定預置內容</li>
+            <li><span class="st half">🔶</span> XP/能力數值<b>不會因完成活動而變動</b>(學習閉環未建,見待建構)</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">活動目錄+詳情</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 科別篩選、等級鎖定(依登入者真計算)、卡片/詳情/步驟軸狀態顯示</li>
+            <li><span class="st half">🔶</span> 回饋牆:顯示邏輯正常,但內容全為預置示範(無真回饋產生來源)</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">虛擬臨床活動執行(僅上腹痛)</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 階段主面板與步驟軸一致(問診/診察/鑑別/判讀/處置/回報/總結各有對應畫面);階段互動狀態保存(檢查揭露、鑑別清單、關鍵標記、醫令勾選);進度推進與離開保存</li>
+            <li><span class="st ok">✅</span> 課堂連動:教師暫停→本頁顯示討論橫幅+輸入封鎖;恢復即解除</li>
+            <li><span class="st half">🔶</span> 病人對話為固定腳本循環(非理解語意);SBAR 送出/開立醫令按下僅提示;<b>階段中的選擇(鑑別、醫令)無任何評核後果</b></li>
+            <li><span class="st half">🔶</span> 其餘 6 個活動僅導引頁,無執行內容</li>
+            <li><span class="st no">⬜</span> 完成活動→寫入 XP/能力/歷程/AI 回饋</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">學習歷程</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 新學員空狀態邏輯(依登入者判斷,含成績推估註記)</li>
+            <li><span class="st half">🔶</span> 示範帳號的折線圖/弱點分析/完成紀錄全為固定內容;Portfolio 匯出僅提示</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">排行榜</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st half">🔶</span> <b>整頁未完成</b>:tab 與匿名切換可點,但榜單為固定名單、<b>不隨任何人的實際 XP 計算</b>;成就徽章為固定文字;新學員提示正常但指向的動態入榜並不存在</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">同儕與協作</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> <b>跨帳號站內訊息</b>:傳送→對方帳號登入見未讀紅點(側欄/聯絡人/計數)→讀取→回覆,時間戳、開啟即讀、聯絡人動態=學員資料庫——全鏈驗證可走</li>
+            <li><span class="st half">🔶</span> 張同學/周同學為固定腳本自動回覆(示範用,已標註)</li>
+            <li><span class="st half">🔶</span> 邀請組隊:僅按鈕→狀態文字變更,無邀請送達/回應流程</li>
+            <li><span class="st no">⬜</span> 多人協作活動執行畫面</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">通知與設定</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st half">🔶</span> <b>整頁未完成</b>:通知中心為固定 6 則(平台動作不產生通知);學習目標可勾選但不影響推薦;匿名偏好連動的排行榜本身是假資料;退出排行榜僅提示</li>
+          </ul></div>
+        </div>
+      </div>
+
+  <!-- ═══ 教師 ═══ -->
+      <div class="col teacher">
+        <div class="col-h"><span class="name">教師介面</span><span class="en">FACULTY</span></div>
+        <div class="page">
+          <div class="page-h"><span class="pt">教學儀表板+活動監控</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 活動列表動態(新建活動即出現)、點列進監控頁導航</li>
+            <li><span class="st ok">✅</span> 課堂控場↔學員端連動(暫停/恢復真作用於學員執行頁)</li>
+            <li><span class="st half">🔶</span> 統計卡、完成率、卡關點、AI 優異/需關注名單、班級弱點圖、六組進度、AI 洞察——<b>全為固定示範數據</b>,不反映任何真實活動;廣播僅提示;新建活動的監控頁同樣顯示這套假數據</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">教案編輯器</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 個案關鍵字搜尋(真過濾);藍圖設定狀態保存(每步驟工具勾選/評分機制/警示/打勾);送審→審查佇列→結果回寫「我的教案」狀態——此操作鏈在原型內真連動</li>
+            <li><span class="st half">🔶</span> AI 教案初稿為固定文本</li>
+            <li><span class="st no">⬜</span> <b>藍圖內容→學員端執行畫面的驅動</b>:設計的步驟/工具/評分不影響學員實際看到的活動(上腹痛執行頁為獨立寫死的示範)——即「設計了但沒對上」的根源</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">課程活動管理</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 建立活動表單(必填驗證)→列表/儀表板同步、寫入稽核;課堂控場狀態機</li>
+            <li><span class="st half">🔶</span> 「編輯」僅提示;建立的活動<b>不會真的開放給任何學員</b>(學員端活動目錄為固定 7 項)</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">學員學習數據+個人報表</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st half">🔶</span> <b>整區未完成</b>:名單/成績/雷達/趨勢皆為固定示範五人(與學員資料庫匯入的真學員無關);Rubric 面板可改分但「儲存」不寫入任何地方;AI 初評為固定值;匯出/通知導師僅提示</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">教案庫</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 已審核個案列表動態(審查通過即出現)</li>
+            <li><span class="st half">🔶</span> 複用/套用範本僅提示</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">臨床審查</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 佇列動態(個案+教案);AI 預檢動態計算(評分完成度/一致性註記);退回強制附意見;通過→版本推進+狀態於管理端/編輯器/教案庫全站同步;寫入稽核——<b>整條審核工作流可完整驗證</b></li>
+            <li><span class="st half">🔶</span> 審查意見僅當場顯示,無通知作者機制;AI 預檢的「一致性問題」來自預置資料非真檢測</li>
+          </ul></div>
+        </div>
+      </div>
+
+  <!-- ═══ 導師 ═══ -->
+      <div class="col mentor">
+        <div class="col-h"><span class="name">導師介面</span><span class="en">MENTOR</span></div>
+        <div class="page">
+          <div class="page-h"><span class="pt">全部四頁(總覽/個人頁/推薦/會談)</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 頁面導航、導生 tab 切換、AI 回饋草稿一鍵填入(可編輯)等介面操作</li>
+            <li><span class="st half">🔶</span> <b>整介面資料層未完成</b>:導生名單固定三人(不隨管理者配對變動);時間軸/關鍵時刻/成長摘要/會談紀錄皆固定;「送出回饋」不寫入學員回饋牆;「確認推送」不出現在學員端(學員看到的導師推薦是另一筆預置資料);訊息為罐頭回覆、未接跨帳號訊息層;新增會談僅提示</li>
+          </ul></div>
+        </div>
+      </div>
+
+  <!-- ═══ 管理者 ═══ -->
+      <div class="col admin">
+        <div class="col-h"><span class="name">管理者介面</span><span class="en">ADMIN</span></div>
+        <div class="page">
+          <div class="page-h"><span class="pt">帳號與權限管理</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 六碼帳號建立三模式(單筆/區間≤200/貼名單解析):格式與必填驗證、重複略過回報、同步學員資料庫、新建高亮、寫入稽核——依規格完整</li>
+            <li><span class="st half">🔶</span> 編輯/停用:介面可操作並保存,但<b>停用的帳號仍可登入</b>(登入端未檢查狀態);重設密碼:因登入本就不驗證密碼,實際無效果;批次 CSV 僅提示;統計卡固定數字</li>
+            <li><span class="st half">🔶</span> 導師—導生配對:勾選可保存,但<b>不連動導師端名單</b></li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">學員資料庫</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> <b>名單匯入→帳號→登入顯示→成績匯入→能力/XP 推估→短板推薦</b>整條鏈真連動且可逐步驗證;解析容錯(行內覆寫/重複/無法解析回報);統計卡與詳情動態</li>
+            <li><span class="st half">🔶</span> 學員資料的編輯/刪除無介面;成績誤植無法修正只能重整重來</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">虛擬病人資料管理+Avatar</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 匯入個案表單(必填驗證)→詳情→送審→審查鏈;退回→重新送審;Avatar 新增表單→卡片</li>
+            <li><span class="st half">🔶</span> AI 一致性檢查結果為預置(非真比對);資料組成完整度條為推算示意;修正/編輯資料僅提示;Avatar 沙盒為每人一句固定台詞、新增者為通用句</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">XP 與能力規則定義</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 五區規則(等級門檻/換算參數/課程關鍵字對應/活動 XP/計分開關)全部可編輯保存;「套用並重算」對全部有成績學員真重算,學員登入即見新值;全程寫入稽核</li>
+            <li><span class="st half">🔶</span> 排行榜計分開關不影響實際榜單(榜單本身是假資料);規則版本留存/核定流程無</li>
+          </ul></div>
+        </div>
+        <div class="page">
+          <div class="page-h"><span class="pt">系統與稽核</span><span class="tw">▶</span></div>
+          <div class="page-b"><ul>
+            <li><span class="st ok">✅</span> 稽核紀錄動態累積(時間/操作者/行為,涵蓋帳號/匯入/送審/審查/規則等操作)</li>
+            <li><span class="st half">🔶</span> 使用統計為固定數字</li>
+          </ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 待建構 ═══ -->
+  <div class="sec">
+    <div class="sec-t">待建構清單　NOT BUILT</div>
+    <div class="note"><ul style="columns:2;column-gap:40px;">
+      <li><span class="st no">⬜</span> <b>登入安全</b>:密碼驗證、停用阻擋、首次登入強制改密、SSO</li>
+      <li><span class="st no">⬜</span> <b>學習閉環</b>:完成活動→寫入 XP/能力/歷程/AI 回饋;階段選擇→評核</li>
+      <li><span class="st no">⬜</span> <b>教案驅動</b>:藍圖內容→學員端執行畫面;新建活動→學員端可見</li>
+      <li><span class="st no">⬜</span> 排行榜依實際 XP 動態計算</li>
+      <li><span class="st no">⬜</span> 教學數據真實化:儀表板/監控/學員數據接真學員與真活動紀錄</li>
+      <li><span class="st no">⬜</span> 導師端連動:配對→名單、推送→學員端、回饋→回饋牆、訊息接共用層</li>
+      <li><span class="st no">⬜</span> 通知事件流(平台動作→產生通知);審查結果通知作者</li>
+      <li><span class="st no">⬜</span> 教師/導師資料依身分歸屬過濾</li>
+      <li><span class="st no">⬜</span> 學員資料編輯/刪除介面;學習目標→推薦權重</li>
+      <li><span class="st no">⬜</span> 多人協作活動執行;上腹痛以外活動內容</li>
+      <li><span class="st no">⬜</span> 檔案匯出入(Portfolio/報表 PDF/CSV);規則版本留存</li>
+      <li><span class="st no">⬜</span> 真 AI 四引擎(對話/評核/推薦/一致性——現皆為腳本)</li>
+      <li><span class="st no">⬜</span> 後端與資料庫(現為記憶體,重新整理重置)</li>
+    </ul></div>
+  </div>
+
+  <div class="foot">
+    Beta 0.1 功能驗收版 · 2026/09/29 · 採嚴格標準:「可以點但不完整」一律列未完成。核對方式:✅ 逐項操作應與描述完全一致;🔶 確認介面存在並理解其缺口;⬜ 為建置範圍。<br>
+    真正通過嚴格標準的核心鏈有五條:①帳號建立與學員資料庫全鏈 ②審核工作流全鏈 ③規則定義與重算 ④跨帳號站內訊息 ⑤課堂控場連動——其餘多數頁面屬「介面完成、資料與連動未完成」。線上 demo(lendiswu.github.io/virtual-hospital)已同步為 Beta 0.1(2026/09/29)。
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.page-h').forEach(h=>{
+    h.addEventListener('click',()=>h.parentElement.classList.toggle('open'));
+  });
+  function toggleAll(open){
+    document.querySelectorAll('.page').forEach(p=>p.classList.toggle('open',open));
+  }
+  document.getElementById('c-ok').textContent=document.querySelectorAll('.page-b .st.ok').length;
+  document.getElementById('c-half').textContent=document.querySelectorAll('.page-b .st.half').length;
+  document.getElementById('c-no').textContent=document.querySelectorAll('.st.no').length;
+</script>
+<div class="fz-ctl" title="調整字級(點百分比還原)">
+  <button onclick="setFz(-0.15)">A−</button><span id="fz-val" onclick="resetFz()">100%</span><button onclick="setFz(0.15)">A+</button>
+</div>
+<script>
+  var FZ=1;
+  function setFz(d){ FZ=Math.min(1.9, Math.max(0.85, Math.round((FZ+d)*100)/100)); applyFz(); }
+  function resetFz(){ FZ=1; applyFz(); }
+  function applyFz(){ document.body.style.zoom=FZ; document.getElementById('fz-val').textContent=Math.round(FZ*100)+'%'; }
+</script>
+</body>
+</html>
